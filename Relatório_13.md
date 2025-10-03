@@ -14,17 +14,17 @@
 
 ## Ambiente Proposto
 
-* **VM1 – Servidor (Ubuntu Server)**
+* **VM1 – Servidor (Ubuntu/Debian Server)**
 
   * Apache HTTP (80/443)
   * Mosquitto MQTT Broker (1883/8883)
 
-* **VM2 – Cliente (Ubuntu Desktop/Server)**
+* **VM2 – Cliente (Ubuntu/Debian Desktop/Server)**
 
   * curl (HTTP)
   * mosquitto-clients (MQTT)
 
-* **VM3 – Observador (Ubuntu/Kali)**
+* **VM3 – Observador (Ubuntu/Debian Desktop)**
 
   * Wireshark
 
