@@ -6,7 +6,7 @@
 
 ## Objetivo
 
-* Montar um laboratório em **rede interna no VirtualBox** para demonstrar TLS.
+* Montar um laboratório em **rede interna no VirtualBox** para demonstrar TLS nos protocolos HTTP e MQTT.
 * Comparar tráfego em texto claro (HTTP/MQTT sem TLS) e criptografado (HTTPS/MQTT com TLS).
 * Analisar as diferenças via **Wireshark**.
 
