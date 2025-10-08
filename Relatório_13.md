@@ -42,7 +42,7 @@ Com **NAT Network (NatNetwork)**, os IPs são atribuídos automaticamente por **
 
 ### 2) No Cliente (VM2) — captura (Wireshark)
 
-Abra o Wireshark e selecione a **interface da NAT Network** (a que mostra o IP do Cliente).
+Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Network** (a que mostra o IP do Cliente).
 **Filtro geral:** `ip.addr == <IP_SERVIDOR>`
 
 ### 3) Pacotes necessários (resumo)
