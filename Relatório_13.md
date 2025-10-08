@@ -1,5 +1,5 @@
 # T02 – Redes de Dados I
-'
+
 # Relatório 13: TLS em HTTP e MQTT com Wireshark (VMs no VirtualBox)
 
 Este relatório tem como objetivo **montar um laboratório em **NAT Network** (rede NAT do VirtualBox)** para demonstrar o uso de **TLS** nos protocolos **HTTP** e **MQTT**, comparar o tráfego em texto claro (HTTP/MQTT sem TLS) e criptografado (HTTPS/MQTT com TLS) e **analisar as diferenças no Wireshark**.
@@ -162,12 +162,16 @@ sudo wireshark
 
 ### Cenário 3 — MQTT **sem TLS** (porta 1883)
 
-1. **Verificar listener padrão do Mosquitto (VM1):**
+1. **No Servidor (VM1) — habilitar listener 1883 acessível na rede:**
    **comando:**
 
    ```bash
-   sudo grep -R "^listener" /etc/mosquitto  || echo "listener padrão 1883 ativo"
-   ss -tulpn | grep :1883
+   sudo tee /etc/mosquitto/conf.d/plain.conf >/dev/null <<'EOF'
+   listener 1883 0.0.0.0
+   allow_anonymous true
+   EOF
+   sudo systemctl restart mosquitto
+   ss -lntp | grep :1883 # esperado: 0.0.0.0:1883
    ```
 2. **No Cliente (VM2), abrir dois terminais:**
    **Terminal A — subscribe:**
@@ -185,13 +189,6 @@ sudo wireshark
    ```
 3. **No Cliente (VM2) — captura (Wireshark):** filtro `mqtt` ou `tcp.port == 1883`.
    **O que observar:** pacotes `CONNECT`, `CONNACK`, `PUBLISH` e **payload legível** (string `Mensagem sem TLS`).
-
-**Validação:**
-**comando:**
-
-```bash
-echo OK
-```
 
 *(Mensagens aparecerão no Terminal A do `mosquitto_sub`)*
 
@@ -231,10 +228,20 @@ echo OK
    **comando:**
 
    ```bash
-   echo "listener 8883\nallow_anonymous true\ncafile /etc/mosquitto/certs/ca.crt\ncertfile /etc/mosquitto/certs/server.crt\nkeyfile /etc/mosquitto/certs/server.key" | \
+   echo "listener 8883 0.0.0.0
+   allow_anonymous true
+   cafile /etc/mosquitto/certs/ca.crt
+   certfile /etc/mosquitto/certs/server.crt
+   keyfile /etc/mosquitto/certs/server.key" | \
    sudo tee /etc/mosquitto/conf.d/tls.conf
+
+   # IMPORTANTE: permitir que o serviço 'mosquitto' leia os arquivos
+   sudo chown mosquitto:mosquitto /etc/mosquitto/certs/{ca.crt,server.crt,server.key}
+   sudo chmod 640 /etc/mosquitto/certs/server.key
+   sudo chmod 644 /etc/mosquitto/certs/{server.crt,ca.crt}
+
    sudo systemctl restart mosquitto
-   ss -tulpn | egrep "(1883|8883)"
+   ss -tulpn | egrep "(1883|8883)"   # esperado: 0.0.0.0:8883
    ```
 
 4. **Copiar a `ca.crt` para o Cliente (VM2):**
@@ -266,13 +273,6 @@ echo OK
 
 6. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
    **O que observar:** handshake TLS e **payload cifrado** (não deve aparecer a string `Mensagem com TLS`).
-
-**Validações úteis:**
-**comando:**
-
-```bash
-openssl s_client -connect <IP_SERVIDOR>:8883 -showcerts </dev/null | openssl x509 -noout -subject -issuer -dates
-```
 
 ---
 
