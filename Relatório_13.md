@@ -50,8 +50,6 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
 * **Servidor:** `apache2`, `openssl`, `mosquitto`, `mosquitto-clients`
 * **Cliente:** `curl`, `mosquitto-clients`, `wireshark`
 
-> **Dica:** se usar `ufw`, mantenha **desabilitado** ou **libere** as portas 80/443/1883/8883 localmente.
-
 ---
 
 ## IV. Instalação e Preparação
@@ -60,6 +58,42 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
 >
 > * **VM1 – Servidor:** `sudo apt update && sudo apt install -y apache2 openssl mosquitto mosquitto-clients`
 > * **VM2 – Cliente:** `sudo apt update && sudo apt install -y curl mosquitto-clients wireshark`
+
+### 0) **Preparar a rede (VirtualBox → Ferramentas → Redes NAT)**
+
+1. **Abrir o gerenciador de redes NAT:**
+
+   * No VirtualBox, clique em **“Ferramentas”** (ou *Tools*).
+   * Clique em **“Redes NAT”** (ou *Network Manager* → **NAT Networks**).
+
+2. **Se já existir `NatNetwork`, apenas confira se está configurada:**
+
+   * **Name:** `NatNetwork`
+   * **IPv4 Prefix:** verifique o prefixo (ex.: `10.0.2.0/24`).
+   * **Habilitar DHCP**: Marcado.
+
+3. **Se NÃO existir `NatNetwork`: criar uma:**
+
+   * Clique em **“Criar”** (*Create*).
+   * **Name:** `NatNetwork`
+   * **IPv4 Prefix:** ex.: `10.0.2.0/24` (padrão)
+   * Marque **Habilitar DHCP**.
+   * Confirme com **OK**.
+
+4. **Vincular cada VM à `NatNetwork`:**
+
+   * Para **VM1** e **VM2** → **Configurações** (*Settings*) → **Rede** (*Network*).
+   * **Adaptador 1** (*Adapter 1*) → **Conectado a:** *NAT Network* → **Nome:** `NatNetwork`.
+   * OK e **iniciar** as VMs.
+
+5. **Verificação rápida dentro das VMs:**
+
+   ```bash
+   ip a                          # verificar IPs (devem estar no mesmo prefixo, ex.: 10.0.2.x)
+   ping -c2 <IP_SERVIDOR>        # da VM2 para a VM1
+   ```
+
+   > Se o ping falhar, confira se **ambas** estão realmente em **NAT Network (NatNetwork)** (e não em “NAT” simples).
 
 ### A) Servidor (VM1)
 
