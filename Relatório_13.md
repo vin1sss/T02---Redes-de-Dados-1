@@ -78,13 +78,17 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
    * **Name:** `NatNetwork`
    * **IPv4 Prefix:** ex.: `10.0.2.0/24` (padrão)
    * Marque **Habilitar DHCP**.
-   * Confirme com **OK**.
+   * Confirme com **Aplicar**.
+   
+   [![image.png](https://i.postimg.cc/dVtK6mCB/image.png)](https://postimg.cc/N5VVfXp9)
 
 4. **Vincular cada VM à `NatNetwork`:**
 
    * Para **VM1** e **VM2** → **Configurações** (*Settings*) → **Rede** (*Network*).
    * **Adaptador 1** (*Adapter 1*) → **Conectado a:** *NAT Network* → **Nome:** `NatNetwork`.
    * OK e **iniciar** as VMs.
+  
+   [![image.png](https://i.postimg.cc/c4t3HwCP/image.png)](https://postimg.cc/mtRkpcQS)
 
 5. **Verificação rápida dentro das VMs:**
 
@@ -94,6 +98,8 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
    ```
 
    > Se o ping falhar, confira se **ambas** estão realmente em **NAT Network (NatNetwork)** (e não em “NAT” simples).
+   
+   [![image.png](https://i.postimg.cc/tgsNHTwm/image.png)](https://postimg.cc/FfQLy99j)
 
 ### A) Servidor (VM1)
 
@@ -137,7 +143,7 @@ newgrp wireshark
 ```bash
 sudo wireshark
 ```
-
+[![image.png](https://i.postimg.cc/RFNtHD4W/image.png)](https://postimg.cc/ftQk453s)
 ---
 
 ## V. Procedimentos (Passo a Passo)
@@ -152,6 +158,8 @@ sudo wireshark
    ```
 2. **No Cliente (VM2) — captura (Wireshark):** usar filtro `http`.
    **O que observar:** requisição `GET / HTTP/1.1` e resposta `200 OK` com **payload legível** (HTML contendo `HELLO_TLS_HTTP`).
+
+[![image.png](https://i.postimg.cc/Njwyp07V/image.png)](https://postimg.cc/CzmLKS2H)
 
 ### Cenário 2 — HTTP **com TLS** (HTTPS na porta 443)
 
@@ -191,7 +199,7 @@ sudo wireshark
    ```
 5. **No Cliente (VM2) — captura (Wireshark):** filtro `tls` ou `tcp.port == 443`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello, Certificado) e **payload cifrado**.
-
+[![image.png](https://i.postimg.cc/Njwyp07V/image.png)](https://postimg.cc/CzmLKS2H)
 ---
 
 ### Cenário 3 — MQTT **sem TLS** (porta 1883)
