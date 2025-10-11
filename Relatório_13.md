@@ -301,17 +301,21 @@ sudo wireshark
    ss -tulpn | egrep "(1883|8883)"   # esperado: 0.0.0.0:8883
    ```
 
-4. **Copiar a `ca.crt` para o Cliente (VM2):**
-   Use `scp` ou copie manualmente (caso não haja SSH configurado, opção simples é **copiar via ISO/Shared Folder** do VirtualBox). Se tiver SSH:
-
-   **comando (se SSH ativo em VM1 e VM2):**
+4. **Transferir a `ca.crt` para o Cliente (VM2) — via HTTP pelo Apache (método padrão):**
+   No Servidor (VM1): copiar a CA para a raiz pública do Apache:
+   **comando:**
 
    ```bash
-   # No VM2 (Cliente), buscando do Servidor:
-   scp usuario@<IP_SERVIDOR>:/etc/mosquitto/certs/ca.crt ~/ca.crt
+   sudo cp /etc/mosquitto/certs/ca.crt /var/www/html/ca.crt
+   sudo chmod 644 /var/www/html/ca.crt
+   ls -l /var/www/html/ca.crt
    ```
-
-   *(Se não houver SSH, transfira o arquivo pela pasta compartilhada do VirtualBox e coloque-o em `~/ca.crt` no Cliente.)*
+   No Cliente (VM2) baixar a CA via `curl`:
+   **comando:**
+   
+   ```bash
+   curl -f http://<IP_SERVIDOR>/ca.crt -o ~/ca.crt
+   ```
 
 5. **No Cliente (VM2) — teste TLS (porta 8883):**
    **Terminal A — subscribe:**
@@ -330,6 +334,8 @@ sudo wireshark
 
 6. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
    **O que observar:** handshake TLS e **payload cifrado** (não deve aparecer a string `Mensagem com TLS`).
+
+[![image.png](https://i.postimg.cc/28z5KvH6/image.png)](https://postimg.cc/mh5RccWf)
 
 ---
 
