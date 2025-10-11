@@ -125,6 +125,19 @@ sudo systemctl enable --now apache2 mosquitto
 ss -tulpn | egrep "(80|1883)"
 ```
 
+**Mosquitto — preparar listener 1883 em rede (pré-cenários):**
+**comando:**
+```bash
+sudo systemctl stop mosquitto
+sudo rm -f /etc/mosquitto/conf.d/00-disable-default.conf  # NÃO use 'port 0' no Mosquitto 2.x
+sudo tee /etc/mosquitto/conf.d/plain.conf >/dev/null <<'EOF'
+listener 1883 0.0.0.0
+allow_anonymous true
+EOF
+sudo systemctl restart mosquitto
+sudo ss -lntp | grep :1883   # esperado: 0.0.0.0:1883
+```
+
 ### B) Cliente (VM2)
 
 **Instalar clientes HTTP/MQTT e Wireshark:**
@@ -143,7 +156,7 @@ newgrp wireshark
 ```bash
 sudo wireshark
 ```
-[![image.png](https://i.postimg.cc/RFNtHD4W/image.png)](https://postimg.cc/ftQk453s)
+[![image.png](https://i.postimg.cc/8krw9grB/image.png)](https://postimg.cc/c60Qtjhr)
 ---
 
 ## V. Procedimentos (Passo a Passo)
@@ -159,7 +172,7 @@ sudo wireshark
 2. **No Cliente (VM2) — captura (Wireshark):** usar filtro `http`.
    **O que observar:** requisição `GET / HTTP/1.1` e resposta `200 OK` com **payload legível** (HTML contendo `HELLO_TLS_HTTP`).
 
-[![image.png](https://i.postimg.cc/Njwyp07V/image.png)](https://postimg.cc/CzmLKS2H)
+[![image.png](https://i.postimg.cc/J407MKMB/image.png)](https://postimg.cc/JGwCQNy1)
 
 ### Cenário 2 — HTTP **com TLS** (HTTPS na porta 443)
 
@@ -199,7 +212,7 @@ sudo wireshark
    ```
 5. **No Cliente (VM2) — captura (Wireshark):** filtro `tls` ou `tcp.port == 443`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello, Certificado) e **payload cifrado**.
-[![image.png](https://i.postimg.cc/Njwyp07V/image.png)](https://postimg.cc/CzmLKS2H)
+[![image.png](https://i.postimg.cc/gcq4mqNz/image.png)](https://postimg.cc/Lh5jVPcw)
 ---
 
 ### Cenário 3 — MQTT **sem TLS** (porta 1883)
@@ -232,7 +245,9 @@ sudo wireshark
 3. **No Cliente (VM2) — captura (Wireshark):** filtro `mqtt` ou `tcp.port == 1883`.
    **O que observar:** pacotes `CONNECT`, `CONNACK`, `PUBLISH` e **payload legível** (string `Mensagem sem TLS`).
 
-*(Mensagens aparecerão no Terminal A do `mosquitto_sub`)*
+    *(Mensagens aparecerão no Terminal A do `mosquitto_sub`)*
+    
+[![image.png](https://i.postimg.cc/7bvy3FQM/image.png)](https://postimg.cc/y3T5BbKk)
 
 ---
 
