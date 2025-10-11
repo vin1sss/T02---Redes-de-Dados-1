@@ -212,6 +212,7 @@ sudo wireshark
    ```
 5. **No Cliente (VM2) — captura (Wireshark):** filtro `tls` ou `tcp.port == 443`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello, Certificado) e **payload cifrado**.
+
 [![image.png](https://i.postimg.cc/gcq4mqNz/image.png)](https://postimg.cc/Lh5jVPcw)
 ---
 
@@ -367,20 +368,31 @@ Foi demonstrado, de forma prática, que a adoção de **TLS** em HTTP e MQTT pro
 
 ---
 
-## Anexos (inserir prints)
-
-* **Figura 1 —** HTTP sem TLS: `GET /` e `200 OK` com corpo legível.
-* **Figura 2 —** Handshake TLS no HTTPS (ClientHello/ServerHello/Certificate).
-* **Figura 3 —** MQTT sem TLS: `PUBLISH` com payload `Mensagem sem TLS`.
-* **Figura 4 —** MQTT com TLS: `Application Data` cifrado (porta 8883).
-
----
-
 ## Apêndice — Troubleshooting rápido
 
-* **Não vejo o tráfego no Wireshark (VM2):** confirme que está capturando na interface da NAT Network (verifique com `ip -br a`) e que há tráfego sendo gerado (execute `curl`/`mosquitto_*` no VM2).
-* **Interface diferente de `enp0s3`:** ajuste o nome no netplan.
-* **HTTPS não sobe:** verifique caminhos do `SSLCertificateFile` e `SSLCertificateKeyFile` no `default-ssl.conf`.
-* **Mosquitto 8883 não abre:** cheque `/etc/mosquitto/conf.d/tls.conf` e permissões de arquivos em `/etc/mosquitto/certs`.
-* **Cliente MQTT não valida o broker:** garanta que usa `--cafile ~/ca.crt` que corresponde à CA que assinou `server.crt`.
-* **Sem captura no Wireshark:** adicione o usuário ao grupo `wireshark` e reabra a sessão (`newgrp wireshark`).
+* **Não vejo tráfego no Wireshark (VM2):** selecione a **interface da NAT Network** (confira com `ip -br a`) e gere tráfego (`curl`/`mosquitto_*` no VM2). Use filtro `ip.addr == <IP_SERVIDOR>`.
+* **HTTPS não sobe:** habilite `ssl` e o site padrão (`a2enmod ssl && a2ensite default-ssl`), confirme caminhos no `default-ssl.conf` (`SSLCertificateFile`/`SSLCertificateKeyFile`) e reinicie `apache2`. Valide com `ss -lntp | grep :443`.
+* **`curl -vk https://<IP_SERVIDOR>` falha:** verifique se o 443 está **LISTEN** e se não há firewall bloqueando localmente.
+* **Mosquitto 1883 não abre:** **não use `port 0`**. Mantenha **apenas**:
+
+  ```
+  /etc/mosquitto/conf.d/plain.conf
+  listener 1883 0.0.0.0
+  allow_anonymous true
+  ```
+
+  Reinicie e valide: `ss -lntp | grep :1883` (esperado `0.0.0.0:1883`).
+* **Mosquitto 8883 não abre (TLS):** confira `/etc/mosquitto/conf.d/tls.conf` e permissões:
+
+  ```
+  chown mosquitto:mosquitto /etc/mosquitto/certs/{ca.crt,server.crt,server.key}
+  chmod 640 /etc/mosquitto/certs/server.key
+  chmod 644 /etc/mosquitto/certs/{server.crt,ca.crt}
+  ```
+
+  Evite **listeners duplicados**. Valide com `ss -lntp | egrep '(1883|8883)'`.
+* **Cliente MQTT não valida o broker:** use `--cafile ~/ca.crt` e garanta que o **CN** do `server.crt` é o **<IP_SERVIDOR>** usado na conexão.
+* **Transferir a CA sem SSH:** no **Servidor** `cp /etc/mosquitto/certs/ca.crt /var/www/html/ca.crt`; no **Cliente** `curl -f http://<IP_SERVIDOR>/ca.crt -o ~/ca.crt`.
+* **VMs não se enxergam:** confirme que **ambas** estão em **NAT Network (`NatNetwork`)** com **DHCP ON** (não “NAT” simples).
+* **Sem captura como usuário comum:** `sudo dpkg-reconfigure wireshark-common` → **Yes**, `sudo usermod -aG wireshark $USER`, `newgrp wireshark`.
+* **Filtros rápidos no Wireshark:** `http`, `tls` (ou `tcp.port == 443`), `mqtt` (ou `tcp.port == 1883`), `tcp.port == 8883`, `tls.handshake`, `frame contains "HELLO_TLS_HTTP"` / `"Mensagem sem TLS"` (apenas tráfego sem TLS).
