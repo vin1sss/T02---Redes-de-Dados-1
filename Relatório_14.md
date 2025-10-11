@@ -1,7 +1,6 @@
 # T02 – Redes de Dados I
 
 # Relatório 14: Configuração de Firewall de Rede usando **pfSense** (VMs no VirtualBox)
-. Análise de funcionamento
 
 Este relatório descreve a configuração de um **firewall pfSense** atuando como **gateway/NAT e filtro** para uma rede interna com **apenas duas VMs**: **Cliente (Debian Desktop)** e **pfSense**. O objetivo é **montar o ambiente**, aplicar **regras de firewall** típicas e **validar o comportamento** por meio de testes práticos e análise de **logs** no pfSense.
 
