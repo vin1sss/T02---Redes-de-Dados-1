@@ -8,23 +8,23 @@ Este relatório descreve a configuração de um **firewall pfSense** atuando com
 
 ## I. Introdução
 
-Você irá configurar um **pfSense** com duas interfaces (WAN/LAN) no VirtualBox:
+Você utilizará um **pfSense** com duas interfaces (WAN/LAN) no VirtualBox:
 
-* **WAN**: sai para a Internet via **NAT** do VirtualBox.
+* **WAN**: acesso à Internet via **NAT** do VirtualBox.
 * **LAN**: rede isolada (**Internal Network**) onde ficará a VM **Cliente** (Debian).
 
-Depois, aplicará **regras de firewall** (ex.: bloqueio de HTTP, bloqueio de DNS externos, bloqueio de ICMP para Internet), testará com `curl`, `ping`, `dig` no Cliente e verificará **logs** no pfSense.
-**Pilares abordados:** **Confidencialidade** e **Disponibilidade**, com ênfase em **Controle de Acesso** (políticas de saída) e **Registro/Auditoria** (logs).
+Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**, **bloquear ICMP para Internet**) e verificaremos **logs** no pfSense.
+**Pilares:** **Confidencialidade** e **Disponibilidade**, com ênfase em **Controle de Acesso** e **Auditoria**.
 
 ---
 
 ## II. Conceitos e Fundamentos
 
-* **Firewall stateful (pfSense):** avalia pacotes por **regras ordenadas (top-down)** e mantém **estado** de conexões.
+* **Firewall stateful (pfSense):** regras avaliadas **de cima para baixo**; mantém **estado** das conexões.
 * **NAT:** traduz IPs da LAN privada para o IP da WAN (saída para Internet).
-* **Ordem de regras:** a **primeira regra que casa** com o tráfego decide o destino (ALLOW/DENY).
-* **Logs:** permitem correlacionar **tentativas bloqueadas** e **permitidas** para auditoria.
-* **Testes práticos:** `curl` (HTTP/HTTPS), `ping`/`ICMP`, `dig` (DNS).
+* **Ordem de regras:** a **primeira regra compatível** decide (ALLOW/DENY).
+* **Logs:** registram eventos **permitidos/bloqueados**, essenciais para auditoria.
+* **Testes práticos:** **navegador** (HTTP/HTTPS) e `ping` (ICMP).
 
 ---
 
@@ -34,17 +34,13 @@ Depois, aplicará **regras de firewall** (ex.: bloqueio de HTTP, bloqueio de DNS
 
 * **VM-pfSense**
 
-  * **Adapter 1 (WAN):** **NAT** (VirtualBox) – obtém IP via DHCP (ex.: `10.0.2.x`).
-  * **Adapter 2 (LAN):** **Internal Network** chamada `LAN_PFS` (sem DHCP do VBox; pfSense fará DHCP).
+  * **Adapter 1 (WAN):** **NAT** (DHCP do VBox).
+  * **Adapter 2 (LAN):** **Internal Network** chamada **`LAN_PFS`** (pfSense atende esta LAN).
 * **VM-Cliente (Debian Desktop)**
 
-  * **Adapter 1:** **Internal Network** `LAN_PFS` (IP via **DHCP do pfSense**).
+  * **Adapter 1:** **Internal Network** **`LAN_PFS`** (IP via **DHCP** do pfSense).
 
-**Endereçamento sugerido (LAN):**
-
-* **pfSense LAN:** `192.168.10.1/24`
-* **DHCP LAN (pfSense):** `192.168.10.100 – 192.168.10.200`
-* **Cliente:** IP dinâmico (por ex. `192.168.10.100`)
+> **Assunção para o lab:** usar a **configuração padrão do pfSense** para LAN (ex.: `192.168.1.1/24` com DHCP habilitado). Não trataremos o “primeiro setup” do pfSense neste relatório.
 
 > **Observação:** Diferente do Relatório 13 (NAT Network para ambas as VMs), aqui o pfSense **precisa de duas interfaces** (WAN e LAN). Por isso usamos **NAT** (WAN) + **Internal Network** (LAN).
 
@@ -52,64 +48,48 @@ Depois, aplicará **regras de firewall** (ex.: bloqueio de HTTP, bloqueio de DNS
 
 ## IV. Instalação e Preparação
 
-### 0) Preparar as redes no VirtualBox
+### 0) **Preparar as redes (criando pelas Configurações da VM)**
 
-1. **Criar a LAN interna**
+1. **pfSense — habilitar e configurar as duas interfaces**
 
-* VirtualBox → **Ferramentas** (*Tools*) → **Gerenciador de Redes** (*Network Manager*) → **Internal Networks**
-* **Criar** uma Internal Network chamada **`LAN_PFS`** (sem DHCP do VBox).
+* VirtualBox → **botão direito** na VM **pfSense** → **Configurações** → **Rede**.
+* **Adaptador 1 (WAN):**
 
-2. **pfSense – associar interfaces**
+  * **Habilitar Placa de Rede** 
+  * **Conectado a:** **NAT**
+* **Adaptador 2 (LAN):**
 
-* **Adapter 1 (WAN):** **Conectado a:** *NAT* (padrão).
-* **Adapter 2 (LAN):** **Conectado a:** *Internal Network* → **Name:** `LAN_PFS`.
+  * **Habilitar Placa de Rede** 
+  * **Conectado a:** **Internal Network**
+  * **Nome:** **`LAN_PFS`**  ← **digite exatamente este nome** (se não existir, o VirtualBox cria ao salvar).
+* **OK**.
 
-3. **Cliente (Debian) – associar interface**
+2. **Cliente (Debian) — conectar à mesma LAN**
 
-* **Adapter 1:** **Conectado a:** *Internal Network* → **Name:** `LAN_PFS`.
+* **Botão direito** na VM **Cliente** → **Configurações** → **Rede**.
+* **Adaptador 1:** **Internal Network** → **Nome:** **`LAN_PFS`**.
+* **OK**.
 
-4. **Inicialização e verificação (Cliente)**
+3. **Inicialização e verificação rápida**
 
-```bash
-ip a                 # deve receber IP 192.168.10.x após o DHCP do pfSense estar ativo
-```
+* Inicie **pfSense** e depois o **Cliente**.
+* No **Cliente**:
 
-### A) pfSense — configuração inicial (via Console e WebGUI)
+  ```bash
+  ip a                 # deve obter IP na sub-rede da LAN (ex.: 192.168.1.x)
+  ping -c2 192.168.1.1 # (opcional) gateway do pfSense
+  ```
 
-1. **Boot inicial (console pfSense):**
-
-   * Confirme o mapeamento: **WAN = em0** (NAT), **LAN = em1** (`LAN_PFS`).
-   * Defina **LAN IP**: `192.168.10.1/24`.
-   * **Habilite DHCP** na LAN (range `192.168.10.100–192.168.10.200`).
-   * Deixe **WAN = DHCP** (receberá IP do NAT do VirtualBox).
-
-2. **Acesse a WebGUI (no Cliente):**
-
-```bash
-# no navegador do Cliente:
-https://192.168.10.1
-# ignore o alerta de certificado autoassinado
-```
-
-* Login padrão (pfSense “de fábrica”): **admin / pfsense** (altere após o lab).
-* Conclua o **Setup Wizard**: confirme **WAN = DHCP**, **LAN = 192.168.10.1/24**, **DHCP LAN habilitado**.
-
-3. **Teste de conectividade (Cliente):**
-
-```bash
-ping -c 2 192.168.10.1        # gateway (pfSense LAN)
-curl -I http://example.com    # deve funcionar (HTTP)
-curl -I https://example.com   # deve funcionar (HTTPS)
-```
-
-### B) Cliente (Debian Desktop)
+### A) Cliente (Debian Desktop)
 
 Instale utilitários (se necessário):
 
 ```bash
-sudo apt update && sudo apt install -y curl dnsutils net-tools
+sudo apt update && sudo apt install -y net-tools dnsutils curl
 ip route
 ```
+
+> **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do Cliente, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
 
 ---
 
@@ -133,6 +113,8 @@ ip route
 * **Description:** `BLOCK_LAN_HTTP_OUT`
 * **Save** → **Apply Changes**
 
+[![image.png](https://i.postimg.cc/cHKYv8pq/image.png)](https://postimg.cc/N9cLVLGb)
+
 2. **Teste (Cliente):**
 
 ```bash
@@ -140,39 +122,55 @@ curl -v http://example.com        # deve FALHAR (bloqueado)
 curl -v https://example.com       # deve OK
 ```
 
+* Você pode testar acessando os sites **diretamente no navegador** também.
+
+[![image.png](https://i.postimg.cc/N0K7HVT2/image.png)](https://postimg.cc/NywHhddQ)
+[![image.png](https://i.postimg.cc/QMDh9LvM/image.png)](https://postimg.cc/5XsZTr4c)
+
 3. **Logs (pfSense):** **Status > System Logs > Firewall**, filtre por **Interface = LAN** e **porta 80**.
    Verifique entradas **blocked** oriundas do IP do Cliente.
 
 ---
 
-### Cenário 2 — Bloquear **DNS externos**; permitir **DNS via pfSense**
+### Cenário 2 — Bloquear **um site específico** (por FQDN/alias)
 
-**Objetivo:** forçar o uso do **DNS Resolver** do pfSense (Unbound na LAN) e bloquear consultas diretas a servidores externos (ex.: 8.8.8.8).
+**Objetivo:** impedir acesso a um domínio específico (ex.: `www.wikipedia.org`) mantendo o restante da navegação liberado.
 
-1. **pfSense → Services > DNS Resolver:**
+> **Como funciona:** no pfSense, um **Alias** do tipo **Host(s)** aceita **FQDN(Fully Qualified Domain Name)**. O pfSense resolve esse nome para IP(s) e a **regra de bloqueio** usa esse alias como **destino**.
+> *Obs.: em sites atrás de CDNs os IPs podem mudar; para fins de laboratório, o método é suficiente.*
 
-   * **Enable** (padrão já vem ativo). Garanta que está **escutando na LAN**.
+1. **Criar o Alias (pfSense WebGUI) — Firewall > Aliases > Add**
 
-2. **pfSense → Firewall > Rules > LAN → Add (acima do allow):**
-
-* **Action:** *Block*
-* **Protocol:** *TCP/UDP*
-* **Source:** *LAN net*
-* **Destination:** *any*
-* **Destination Port Range:** *DNS (53)*
-* **Description:** `BLOCK_EXTERNAL_DNS`
+* **Name:** `BLOCK_WIKI`
+* **Type:** *Host(s)*
+* **Host(s):** `www.wikipedia.org`
+* **Description:** `FQDN do site a bloquear`
 * **Save** → **Apply Changes**
 
-> (Como o DNS do pfSense é “LAN address:53”, esta regra bloqueia **destinos externos**. A resolução via **gateway (pfSense)** segue permitida pela regra allow LAN to any.)
+2. **Criar a regra de bloqueio (pfSense) — Firewall > Rules > LAN → Add (seta para cima)**
 
-3. **Teste (Cliente):**
+* **Action:** *Block*
+* **Interface:** *LAN*
+* **Family:** *IPv4*
+* **Protocol:** *TCP*
+* **Source:** *LAN net*
+* **Destination:** **`BLOCK_WIKI`** (o alias criado)
+* **Destination Port Range:** *any*
+* **Description:** `BLOCK_SITE_WIKIPEDIA`
+* **Save** → **Apply Changes**
 
-```bash
-dig @8.8.8.8 www.google.com    # deve FALHAR (bloqueado)
-dig www.google.com             # deve RESOLVER via pfSense
-```
+> **Importante:** mantenha esta regra **acima** da regra “allow LAN to any”.
 
-4. **Logs:** **Status > System Logs > Firewall** → veja **blocks** para dest port **53**.
+[![image.png](https://i.postimg.cc/vHhhn54J/image.png)](https://postimg.cc/rKd5X0Cj)
+
+3. **Teste (Cliente) — navegador**
+
+* Abra **[https://www.wikipedia.org](https://www.wikipedia.org)** → **deve FALHAR** (bloqueado).
+* Abra **[https://example.com](https://example.com)** → **deve abrir normalmente** (não bloqueado).
+
+4. **Logs (pfSense):** **Status > System Logs > Firewall**, filtre por **Interface = LAN** e verifique entradas **blocked** cujo **Destination** é um dos IPs resolvidos para `www.wikipedia.org`.
+
+> **Dica:** se o site ainda abrir, limpe cache DNS do cliente e aguarde a atualização do alias (o pfSense **resolve periodicamente** os FQDNs). Também confira a **ordem** da regra na aba **LAN**.
 
 ---
 
@@ -190,45 +188,29 @@ dig www.google.com             # deve RESOLVER via pfSense
 * **Description:** `BLOCK_LAN_ICMP_INTERNET`
 * **Save**
 
+[![image.png](https://i.postimg.cc/c4tYxYQF/image.png)](https://postimg.cc/rKczgDZ4)
+
 2. **Adicionar exceção para o gateway (opcional, acima do block):**
 
 * **Action:** *Pass*
 * **Protocol:** *ICMP*
 * **Source:** *LAN net*
-* **Destination:** *Single host or alias* → **192.168.10.1**
+* **Destination:** *Address or alias* → **192.168.1.1**
 * **Description:** `ALLOW_ICMP_TO_GATEWAY`
 * **Save** → **Apply Changes**
+
+[![image.png](https://i.postimg.cc/52MHfr95/image.png)](https://postimg.cc/TpC29CDh)
 
 3. **Teste (Cliente):**
 
 ```bash
 ping -c 2 8.8.8.8          # deve FALHAR
-ping -c 2 192.168.10.1     # deve OK
+ping -c 2 192.168.1.1     # deve OK
 ```
+
+[![image.png](https://i.postimg.cc/15bGwM9k/image.png)](https://postimg.cc/F7gkQykp)
 
 4. **Logs:** ver **blocks** ICMP na saída.
-
----
-
-### (Opcional) Cenário 4 — Permitir apenas “essenciais” (DNS+HTTPS) e bloquear o restante
-
-**Objetivo:** política restritiva “**Allow list**” para tráfego de saída.
-
-1. **pfSense → Firewall > Rules > LAN** (ordem de cima para baixo):
-
-   * **Pass**: LAN → pfSense (LAN address) **DNS 53** (garante resolução)
-   * **Pass**: LAN → *any* **HTTPS 443**
-   * **Block**: LAN → *any* **any** (regra “drop all” final)
-2. **Teste (Cliente):**
-
-```bash
-curl -I https://example.com     # OK
-curl -I http://example.com      # BLOQUEADO
-dig www.google.com              # OK (via pfSense)
-curl -I http://ftp.debian.org   # BLOQUEADO (porta 80)
-```
-
-3. **Logs:** devem refletir os **drops** do que não está nos “essenciais”.
 
 ---
 
@@ -236,45 +218,35 @@ curl -I http://ftp.debian.org   # BLOQUEADO (porta 80)
 
 ### 1) Quadro comparativo (cenários)
 
-| Cenário | Tráfego            | Regra aplicada            | Resultado esperado | Validação (Cliente)                  |
-| ------- | ------------------ | ------------------------- | ------------------ | ------------------------------------ |
-| 1       | HTTP 80 (saída)    | `BLOCK_LAN_HTTP_OUT`      | **Bloqueado**      | `curl -v http://example.com` (falha) |
-| 1       | HTTPS 443 (saída)  | Default allow             | **Permitido**      | `curl -v https://example.com` (ok)   |
-| 2       | DNS 53 p/ externos | `BLOCK_EXTERNAL_DNS`      | **Bloqueado**      | `dig @8.8.8.8 ...` (falha)           |
-| 2       | DNS via pfSense    | Resolver LAN              | **Permitido**      | `dig ...` (ok)                       |
-| 3       | ICMP Internet      | `BLOCK_LAN_ICMP_INTERNET` | **Bloqueado**      | `ping 8.8.8.8` (falha)               |
-| 3       | ICMP → gateway     | `ALLOW_ICMP_TO_GATEWAY`   | **Permitido**      | `ping 192.168.10.1` (ok)             |
+| Cenário | Tráfego                                                    | Regra aplicada            | Resultado esperado | Validação (Cliente)                                                           |
+| :-----: | ---------------------------------------------------------- | ------------------------- | ------------------ | ----------------------------------------------------------------------------- |
+|    1    | HTTP 80 (saída, geral)                                     | `BLOCK_LAN_HTTP_OUT`      | **Bloqueado**      | Navegador: **[http://neverssl.com](http://neverssl.com)** (falha)             |
+|    1    | HTTPS 443 (saída, geral)                                   | Allow padrão              | **Permitido**      | Navegador: **[https://example.com](https://example.com)** (ok)                |
+|    2    | HTTPS p/ **[www.wikipedia.org](http://www.wikipedia.org)** | `BLOCK_SITE_WIKIPEDIA`    | **Bloqueado**      | Navegador: **[https://www.wikipedia.org](https://www.wikipedia.org)** (falha) |
+|    2    | HTTPS p/ outros destinos                                   | Allow padrão              | **Permitido**      | Navegador: **[https://example.com](https://example.com)** (ok)                |
+|    3    | ICMP Internet                                              | `BLOCK_LAN_ICMP_INTERNET` | **Bloqueado**      | `ping 8.8.8.8` (falha)                                                        |
+|    3    | ICMP → gateway da LAN                                      | `ALLOW_ICMP_TO_GATEWAY`   | **Permitido**      | `ping 192.168.1.1` (ok)                                                       |
 
 ### 2) Onde analisar
 
-* **pfSense → Status > System Logs > Firewall** (filtre por **Interface = LAN**).
-* Ordene por **Timestamp** para correlacionar com o momento do teste do Cliente.
+* **pfSense → Status > System Logs > Firewall** (filtro **Interface = LAN**).
+* Correlacione **timestamp** dos testes com registros **pass/block**.
 
 ---
 
 ## VII. Conclusão
 
-Foi demonstrado, em ambiente controlado com **apenas duas VMs**, que o **pfSense** pode aplicar **políticas de saída** granulares (HTTP, DNS, ICMP), atuando como **gateway/NAT** e **firewall stateful**. Os testes com `curl`, `dig` e `ping` confirmaram o **bloqueio/permit** conforme regras, e os **logs** do pfSense registraram as ocorrências, reforçando os pilares de **Confidencialidade/Disponibilidade** e a importância de **ordenação e precisão das regras**.
-
----
-
-## Anexos (inserir prints)
-
-* **Figura 1 —** Topologia VirtualBox (WAN=NAT, LAN=`LAN_PFS`).
-* **Figura 2 —** Regras do pfSense (LAN) com `BLOCK_LAN_HTTP_OUT` no topo.
-* **Figura 3 —** Log de bloqueio HTTP (porta 80) em **Status > System Logs > Firewall**.
-* **Figura 4 —** `dig` usando DNS do pfSense (sucesso) e `dig @8.8.8.8` (bloqueado).
-* **Figura 5 —** `ping` ao gateway (ok) e a 8.8.8.8 (bloqueado).
+Demonstrou-se, com **duas VMs** (pfSense e Cliente), que o **pfSense** aplica **políticas de saída** eficazes (HTTP geral, **site específico**, ICMP), atuando como **gateway/NAT** e **firewall stateful**. Testes no **navegador** e com **ping** confirmaram os resultados, e os **logs** evidenciaram os eventos, reforçando a importância da **ordem das regras** e do **monitoramento**.
 
 ---
 
 ## Apêndice — Troubleshooting rápido
 
-* **Cliente sem IP na LAN:** confirme que a interface do Cliente está em **Internal Network `LAN_PFS`** e que o **DHCP da LAN** está **habilitado** no pfSense (Services > DHCP Server > LAN).
-* **Sem acesso à WebGUI:** use `https://192.168.10.1` e aceite o certificado autoassinado; confira se a regra **LAN → any** não foi removida acidentalmente.
-* **Regra não funciona:** lembre-se que o pfSense avalia **de cima para baixo**; coloque **blocks** acima das regras de *allow*.
-* **Bloqueio de HTTP não aparece no log:** ative o **Log** na própria regra (ícone/log na linha da regra) e aplique.
-* **`dig @8.8.8.8` ainda responde:** verifique se a regra de **Block DNS 53** está acima da allow geral; garanta que o **DNS Resolver** do pfSense está ligado na **LAN**.
-* **`ping 8.8.8.8` ainda sai:** confira se a regra `ALLOW_ICMP_TO_GATEWAY` está **acima** da `BLOCK_LAN_ICMP_INTERNET` e que o **block** cobre **any** destino.
-* **Cliente sem Internet:** verifique se a **WAN (pfSense)** obteve IP via **DHCP** (Status > Interfaces) e se o **NAT de saída** está em *Automatic outbound NAT* (padrão).
-* **Conflitos de rede:** evite sobrepor a LAN (`192.168.10.0/24`) com a sub-rede do VirtualBox NAT (`10.0.2.0/24`).
+* **Cliente sem IP na LAN:** confirme **Internal Network `LAN_PFS`** no adaptador e que o **DHCP da LAN** do pfSense está ativo.
+* **Sem acesso à WebGUI:** use `https://192.168.1.1` (ou IP LAN do pfSense) e aceite o certificado; verifique se a regra **allow LAN to any** não foi removida.
+* **Regra não surte efeito:** lembre-se da avaliação **top-down**; mantenha **blocks acima** do allow geral; habilite **Log** na regra.
+* **Site específico ainda abre:** confirme a **ordem** da regra, o **alias** (`BLOCK_WIKI` → `www.wikipedia.org`), limpe o **cache DNS** do cliente e aguarde a **atualização do alias** pelo pfSense.
+* **`http://neverssl.com` abre mesmo bloqueado:** verifique se a regra de **porta 80** está no **topo** e se não há regra conflitante; confira os **logs** do pfSense.
+* **`ping 8.8.8.8` ainda sai:** confirme a regra **Block ICMP** e que a exceção **ALLOW_ICMP_TO_GATEWAY** está **acima** dela.
+* **Sem Internet no Cliente:** verifique se a **WAN** do pfSense obteve IP via **DHCP** (Status > Interfaces) e se o **NAT de saída** está em *Automatic* (padrão).
+* **Conflitos de rede:** evite sobrepor a LAN (`192.168.1.0/24`) com a sub-rede do NAT do VirtualBox (`10.0.2.0/24`).
