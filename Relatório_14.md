@@ -4,6 +4,8 @@
 
 Este relatório descreve a configuração de um **firewall pfSense** atuando como **gateway/NAT e filtro** para uma rede interna com **duas VMs**: **Cliente (Debian Desktop)** e **pfSense**. O objetivo é **montar o ambiente**, aplicar **regras de firewall** típicas e **validar o comportamento** por meio de testes práticos e análise de **logs** no pfSense.
 
+* **Material de apoio:** ```https://github.com/vin1sss/T02---Redes-de-Dados-1/```
+
 ---
 
 ## I. Introdução
