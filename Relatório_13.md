@@ -174,6 +174,8 @@ sudo wireshark
 
 [![image.png](https://i.postimg.cc/J407MKMB/image.png)](https://postimg.cc/JGwCQNy1)
 
+> **Lembre-se de reiniciar a captura no Wireshark a cada novo cenário.**
+
 ### Cenário 2 — HTTP **com TLS** (HTTPS na porta 443)
 
 **No Servidor (VM1):**
