@@ -171,7 +171,7 @@ sudo wireshark
    ```bash
    curl -v http://<IP_SERVIDOR>
    ```
-2. **No Cliente (VM2) — captura (Wireshark):** usar filtro `http`.
+2. **No Cliente (VM2) — captura (Wireshark):** iniciar a captura, usar filtro `http`.
    **O que observar:** requisição `GET / HTTP/1.1` e resposta `200 OK` com **payload legível** (HTML contendo `HELLO_TLS_HTTP`).
 
 [![image.png](https://i.postimg.cc/J407MKMB/image.png)](https://postimg.cc/JGwCQNy1)
@@ -214,7 +214,7 @@ sudo wireshark
    ```bash
    curl -vk https://<IP_SERVIDOR>
    ```
-5. **No Cliente (VM2) — captura (Wireshark):** filtro `tls` ou `tcp.port == 443`.
+5. **No Cliente (VM2) — captura (Wireshark):** reiniciar a captura, filtro `tls` ou `tcp.port == 443`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello, Certificado) e **payload cifrado**.
 
 [![image.png](https://i.postimg.cc/gcq4mqNz/image.png)](https://postimg.cc/Lh5jVPcw)
@@ -247,7 +247,7 @@ sudo wireshark
    ```bash
    mosquitto_pub -h <IP_SERVIDOR> -t "teste" -m "Mensagem sem TLS"
    ```
-3. **No Cliente (VM2) — captura (Wireshark):** filtro `mqtt` ou `tcp.port == 1883`.
+3. **No Cliente (VM2) — captura (Wireshark):** reiniciar a captura, filtro `mqtt` ou `tcp.port == 1883`.
    **O que observar:** pacotes `CONNECT`, `CONNACK`, `PUBLISH` e **payload legível** (string `Mensagem sem TLS`).
 
     *(Mensagens aparecerão no Terminal A do `mosquitto_sub`)*
@@ -337,7 +337,7 @@ sudo wireshark
    mosquitto_pub --cafile ~/ca.crt -h <IP_SERVIDOR> -p 8883 -t "teste" -m "Mensagem com TLS"
    ```
 
-6. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
+6. **No Cliente (VM2) — captura (Wireshark):** reiniciar a captura, filtro `tcp.port == 8883` ou `tls`.
    **O que observar:** handshake TLS e **payload cifrado** (não deve aparecer a string `Mensagem com TLS`).
 
 [![image.png](https://i.postimg.cc/28z5KvH6/image.png)](https://postimg.cc/mh5RccWf)
