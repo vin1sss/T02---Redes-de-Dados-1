@@ -4,6 +4,8 @@
 
 Este relatório tem como objetivo **montar um laboratório em **NAT Network** (rede NAT do VirtualBox)** para demonstrar o uso de **TLS** nos protocolos **HTTP** e **MQTT**, comparar o tráfego em texto claro (HTTP/MQTT sem TLS) e criptografado (HTTPS/MQTT com TLS) e **analisar as diferenças no Wireshark**.
 
+* **Material de apoio:** ```https://github.com/vin1sss/T02---Redes-de-Dados-1/```
+
 ---
 
 ## I. Introdução
