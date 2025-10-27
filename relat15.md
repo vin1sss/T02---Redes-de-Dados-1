@@ -1,5 +1,3 @@
-Perfeito! Aqui está o **Relatório 15** ajustado para **apenas duas VMs** (**pfSense** e **VM1**), com o IDS alertando **tráfego entre a Internet e a VM1** (sem VM2, sem tráfego lateral).
-
 ---
 
 # T02 – Redes de Dados I
@@ -274,6 +272,3 @@ Com **pfSense + Suricata** em **modo IDS**, obtivemos **visibilidade** sobre tr�
 * **UA “scanner” sem alerta:** mantenha a **regra local** de UA; em ET POLICY, nem todas as assinaturas disparam em todos os hosts.
 * **Uso de CPU:** desative categorias desnecessárias; mantenha **IDS (IPS OFF)**.
 
----
-
-Se quiser, eu já **gero um PDF** ou adiciono um **checklist resumido** ao final. Quer também um **diagrama simples da topologia** para anexar?
