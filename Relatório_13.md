@@ -163,6 +163,8 @@ sudo wireshark
 [![image.png](https://i.postimg.cc/8krw9grB/image.png)](https://postimg.cc/c60Qtjhr)
 ---
 
+**Visualizar conteúdo dos pacotes:** Clicar com o botão direito no pacote > Follow > TLS Stream (ou o protocolo utilizado no cenário).
+
 ## V. Procedimentos (Passo a Passo)
 
 ### Cenário 1 — HTTP **sem TLS** (porta 80)
