@@ -56,43 +56,45 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
 
 ## IV. Instalação e Preparação
 
-> **Pacotes por VM (Debian Desktop, NAT Network `NatNetwork`)**
->
-> * **VM1 – Servidor:** `sudo apt update && sudo apt install -y apache2 openssl mosquitto mosquitto-clients`
-> * **VM2 – Cliente:** `sudo apt update && sudo apt install -y curl mosquitto-clients wireshark`
-
 ### 0) **Preparar a rede (VirtualBox → Ferramentas → Redes NAT)**
 
 1. **Abrir o gerenciador de redes NAT:**
 
-   * No VirtualBox, clique em **“Ferramentas”** (ou *Tools*).
-   * Clique em **“Redes NAT”** (ou *Network Manager* → **NAT Networks**).
+   * No VirtualBox, clique em **“Arquivos”**
+   * Clique em **“Ferramentas”**
+   * Clique em **“Gerenciador de Rede”**
+   * Clique em **“Redes NAT”**
+  
+   [![image.png](https://i.postimg.cc/G2zQ7ZLq/image.png)](https://postimg.cc/wyyL34sm)
+   
+   [![image.png](https://i.postimg.cc/nzwmQZVw/image.png)](https://postimg.cc/hzTvHkd9)
 
-2. **Se já existir `NatNetwork`, apenas confira se está configurada:**
+3. **Se já existir `NatNetwork`, apenas confira se está configurada:**
 
    * **Name:** `NatNetwork`
-   * **IPv4 Prefix:** verifique o prefixo (ex.: `10.0.2.0/24`).
-   * **Habilitar DHCP**: Marcado.
+   * **IPv4 Prefix:** verifique o prefixo (ex.: `10.0.2.0/24`)
+   * **Habilitar DHCP**: Marcado
 
-3. **Se NÃO existir `NatNetwork`: criar uma:**
+4. **Se NÃO existir `NatNetwork`: criar uma:**
 
-   * Clique em **“Criar”** (*Create*).
+   * Clique em **“Criar”** ou clique com o **botão direito"
    * **Name:** `NatNetwork`
    * **IPv4 Prefix:** ex.: `10.0.2.0/24` (padrão)
-   * Marque **Habilitar DHCP**.
-   * Confirme com **Aplicar**.
+   * Marque **Habilitar DHCP**
+   * Confirme com **Aplicar**
    
    [![image.png](https://i.postimg.cc/dVtK6mCB/image.png)](https://postimg.cc/N5VVfXp9)
 
-4. **Vincular cada VM à `NatNetwork`:**
+5. **Vincular cada VM à `NatNetwork`:**
 
-   * Para **VM1** e **VM2** → **Configurações** (*Settings*) → **Rede** (*Network*).
-   * **Adaptador 1** (*Adapter 1*) → **Conectado a:** *NAT Network* → **Nome:** `NatNetwork`.
-   * OK e **iniciar** as VMs.
+   * Para **VM1** e **VM2** → **Configurações** (*Settings*) → **Rede** (*Network*)
+   * **Adaptador 1** (*Adapter 1*) → **Conectado a:** *NAT Network* → **Nome:** `NatNetwork`
+   * OK e **iniciar** as VMs
+   * **Senha das VMs: `pytest`**
   
    [![image.png](https://i.postimg.cc/c4t3HwCP/image.png)](https://postimg.cc/mtRkpcQS)
 
-5. **Verificação rápida dentro das VMs:**
+6. **Verificação rápida dentro das VMs:**
 
    ```bash
    ip a                          # verificar IPs (devem estar no mesmo prefixo, ex.: 10.0.2.x)
@@ -165,13 +167,16 @@ sudo wireshark
 
 ### Cenário 1 — HTTP **sem TLS** (porta 80)
 
+0. **No Cliente (VM2) — iniciar a captura (Wireshark):** iniciar a captura no wireshark.
+
 1. **No Cliente (VM2) — teste HTTP:**
    **comando:**
 
    ```bash
    curl -v http://<IP_SERVIDOR>
    ```
-2. **No Cliente (VM2) — captura (Wireshark):** iniciar a captura, usar filtro `http`.
+   
+2. **No Cliente (VM2) — captura (Wireshark):** usar filtro `http`.
    **O que observar:** requisição `GET / HTTP/1.1` e resposta `200 OK` com **payload legível** (HTML contendo `HELLO_TLS_HTTP`).
 
 [![image.png](https://i.postimg.cc/J407MKMB/image.png)](https://postimg.cc/JGwCQNy1)
@@ -208,19 +213,23 @@ sudo wireshark
    sudo systemctl restart apache2
    ss -tulpn | grep :443
    ```
-4. **No Cliente (VM2) — teste HTTPS:** (ignorar verificação CA com `-k`):
+4. **No Cliente (VM2) — iniciar a captura (Wireshark):** reiniciar a captura no wireshark.
+
+5. **No Cliente (VM2) — teste HTTPS:** (ignorar verificação CA com `-k`):
    **comando:**
 
    ```bash
    curl -vk https://<IP_SERVIDOR>
    ```
-5. **No Cliente (VM2) — captura (Wireshark):** reiniciar a captura, filtro `tls` ou `tcp.port == 443`.
+6. **No Cliente (VM2) — captura (Wireshark):** filtro `tls` ou `tcp.port == 443`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello, Certificado) e **payload cifrado**.
 
 [![image.png](https://i.postimg.cc/gcq4mqNz/image.png)](https://postimg.cc/Lh5jVPcw)
 ---
 
 ### Cenário 3 — MQTT **sem TLS** (porta 1883)
+
+0. **No Cliente (VM2) — iniciar a captura (Wireshark):** reiniciar a captura no wireshark.
 
 1. **No Servidor (VM1) — habilitar listener 1883 acessível na rede:**
    **comando:**
@@ -247,7 +256,7 @@ sudo wireshark
    ```bash
    mosquitto_pub -h <IP_SERVIDOR> -t "teste" -m "Mensagem sem TLS"
    ```
-3. **No Cliente (VM2) — captura (Wireshark):** reiniciar a captura, filtro `mqtt` ou `tcp.port == 1883`.
+3. **No Cliente (VM2) — captura (Wireshark):** filtro `mqtt` ou `tcp.port == 1883`.
    **O que observar:** pacotes `CONNECT`, `CONNACK`, `PUBLISH` e **payload legível** (string `Mensagem sem TLS`).
 
     *(Mensagens aparecerão no Terminal A do `mosquitto_sub`)*
@@ -322,7 +331,9 @@ sudo wireshark
    curl -f http://<IP_SERVIDOR>/ca.crt -o ~/ca.crt
    ```
 
-5. **No Cliente (VM2) — teste TLS (porta 8883):**
+5. **No Cliente (VM2) — iniciar a captura (Wireshark):** reniciar a captura no wireshark.
+
+6. **No Cliente (VM2) — teste TLS (porta 8883):**
    **Terminal A — subscribe:**
    **comando:**
 
@@ -337,7 +348,7 @@ sudo wireshark
    mosquitto_pub --cafile ~/ca.crt -h <IP_SERVIDOR> -p 8883 -t "teste" -m "Mensagem com TLS"
    ```
 
-6. **No Cliente (VM2) — captura (Wireshark):** reiniciar a captura, filtro `tcp.port == 8883` ou `tls`.
+7. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
    **O que observar:** handshake TLS e **payload cifrado** (não deve aparecer a string `Mensagem com TLS`).
 
 [![image.png](https://i.postimg.cc/28z5KvH6/image.png)](https://postimg.cc/mh5RccWf)
