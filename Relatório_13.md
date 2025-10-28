@@ -316,6 +316,7 @@ sudo wireshark
    ```
 
 4. **Transferir a `ca.crt` para o Cliente (VM2) — via HTTP pelo Apache (método padrão):**
+
    No Servidor (VM1): copiar a CA para a raiz pública do Apache:
    **comando:**
 
@@ -331,9 +332,9 @@ sudo wireshark
    curl -f http://<IP_SERVIDOR>/ca.crt -o ~/ca.crt
    ```
 
-5. **No Cliente (VM2) — iniciar a captura (Wireshark):** reniciar a captura no wireshark.
+6. **No Cliente (VM2) — iniciar a captura (Wireshark):** reniciar a captura no wireshark.
 
-6. **No Cliente (VM2) — teste TLS (porta 8883):**
+7. **No Cliente (VM2) — teste TLS (porta 8883):**
    **Terminal A — subscribe:**
    **comando:**
 
@@ -348,7 +349,7 @@ sudo wireshark
    mosquitto_pub --cafile ~/ca.crt -h <IP_SERVIDOR> -p 8883 -t "teste" -m "Mensagem com TLS"
    ```
 
-7. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
+8. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
    **O que observar:** handshake TLS e **payload cifrado** (não deve aparecer a string `Mensagem com TLS`).
 
 [![image.png](https://i.postimg.cc/28z5KvH6/image.png)](https://postimg.cc/mh5RccWf)
