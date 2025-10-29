@@ -279,22 +279,3 @@ Com **Suricata na própria VM** e **regras locais** simples, comprovamos a detec
   Para POST/HEADER, rode em paralelo:
   `sudo tcpdump -A -ni enp0s3 'port 80' -c 10`
   e verifique o **`POST`**, o **corpo** e o cabeçalho **`X-Trigger-Lab`** em texto.
-
----
-
-## (Opcional) Executar como **serviço** permanente (PCAP em `enp0s3`)
-
-```bash
-sudo tee /etc/default/suricata >/dev/null <<'EOF'
-RUN=yes
-LISTENMODE=pcap
-IFACE=enp0s3
-SURICATA_OPTIONS="-S /etc/suricata/rules/local.rules"
-EOF
-
-sudo systemctl daemon-reload
-sudo systemctl enable --now suricata
-systemctl status suricata --no-pager -n 10
-```
-
-> Se a interface mudar (ex.: `enp0s8`), atualize `IFACE=` e reinicie o serviço.
