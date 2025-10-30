@@ -50,6 +50,8 @@ A única VM (Debian Desktop) atuará como **sensor IDS** (Suricata) e como **cli
 
 ### 0) Verificações iniciais
 
+#### Após ligar a VM:
+
 ```bash
 ip a                    # deve obter IP 10.0.2.x (NAT do VBox)
 ping -c2 1.1.1.1        # checar saída para internet
@@ -166,6 +168,8 @@ curl -4 -s -X POST -d 'SURICATA_BROWSER_BODY_02' 'http://neverssl.com/' >/dev/nu
 
 [![image.png](https://i.postimg.cc/GmPC0RXQ/image.png)](https://postimg.cc/DSzDs9kJ)
 
+* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
+
 **O que observar no log:** a mensagem
 `CUSTOM BROWSER - HTTP client body trigger` (SID **1002002**).
 Se não disparar de primeira, rode com `-v` e valide que o **POST** saiu; rode novamente.
@@ -187,6 +191,8 @@ curl -4 -s -H 'X-Trigger-Lab: 1' 'http://neverssl.com/' >/dev/null
 
 [![image.png](https://i.postimg.cc/vHtskMqz/image.png)](https://postimg.cc/Ln5wZdMY)
 
+* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
+
 **O que observar no log:** a mensagem
 `CUSTOM BROWSER - HTTP header X-Trigger-Lab` (SID **1002003**), com fluxo `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
 
@@ -206,6 +212,8 @@ dig +short suricata-trigger-lab.example >/dev/null
 ```
 
 [![image.png](https://i.postimg.cc/FRyWzFJR/image.png)](https://postimg.cc/BLvcw0p9)
+
+* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
 
 **O que observar no log:** a mensagem
 `CUSTOM BROWSER - DNS query trigger` (SID **1002004**), com fluxo `{UDP} <IP_VM>:<porta> -> <DNS_resolvedor>:53`.
