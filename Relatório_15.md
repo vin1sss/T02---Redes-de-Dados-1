@@ -4,7 +4,7 @@
 
 Este relatório descreve a configuração de um **IDS** com **Suricata** **diretamente no Debian (uma única VM)**, monitorando o tráfego da própria VM para a **Internet**. Usaremos **apenas regras locais (Custom Rules)**, sem baixar rulesets externos. O objetivo é **instalar**, **iniciar** o Suricata em **modo IDS**, **gerar tráfego didático** (via navegador/`curl`) e **analisar os alertas** no `fast.log`/`eve.json`.
 
-> **Importante:** Todos os cenários são **seguros e reprodutíveis** no laboratório.
+* **Material de apoio:** ```https://github.com/vin1sss/T02---Redes-de-Dados-1/```
 
 ---
 
