@@ -1,6 +1,6 @@
 # T02 – Redes de Dados I
 
-# **Relatório 16: “Saindo do VirtualBox” — Criando e testando HTTP e MQTT na nuvem pública da Azure**
+# **Relatório 16: Saindo do VirtualBox — Criando e testando HTTP e MQTT na nuvem pública da Azure**
 
 Este relatório **replica o Relatório 04** (HTTP + MQTT em duas VMs) **só que na Azure**, com interface atual do portal. Você vai:
 
