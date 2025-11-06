@@ -42,8 +42,6 @@ A única VM (Debian Desktop) atuará como **sensor IDS** (Suricata) e como **cli
 
 > **Topologia:** **VM1 ↔ NAT (VBox) ↔ Internet**. O Suricata escuta a **interface de saída** (tipicamente `enp0s3`).
 
-[![image.png](https://i.postimg.cc/kgVZ7c1P/image.png)](https://postimg.cc/dhYnB8c5)
-
 ---
 
 ## IV. Instalação e Preparação
@@ -57,8 +55,6 @@ ip a                    # deve obter IP 10.0.2.x (NAT do VBox)
 ping -c2 1.1.1.1        # checar saída para internet
 ip route get 1.1.1.1    # confirmar interface de saída (ex.: enp0s3)
 ```
-
-[![image.png](https://i.postimg.cc/cHZdzHR5/image.png)](https://postimg.cc/NyJh9QP1)
 
 ### A) Instalar utilitários e Suricata
 
@@ -86,16 +82,12 @@ alert udp any any -> any 53 (msg:"CUSTOM BROWSER - DNS query trigger"; dns.query
 RULES
 ```
 
-[![image.png](https://i.postimg.cc/c41BSB1d/image.png)](https://postimg.cc/kDZbN8tH)
-
 **Validar sintaxe**:
 
 ```bash
 sudo suricata -T -S /etc/suricata/rules/local.rules -v
 # esperado: "4 rules successfully loaded, 0 failed"
 ```
-
-[![image.png](https://i.postimg.cc/pdP2GrYZ/image.png)](https://postimg.cc/zyPZ3JQb)
 
 ### C) Iniciar o Suricata (modo IDS) — **manual, sem `--set`**
 
@@ -115,8 +107,6 @@ ps aux | grep '[s]uricata'
 sudo tail -n 15 /var/log/suricata/suricata.log
 ```
 
-[![image.png](https://i.postimg.cc/cJjdshGP/image.png)](https://postimg.cc/QBp2mptq)
-
 **Onde ver alertas:** `tail -f /var/log/suricata/fast.log`
 
 **Alternativa JSON:** `jq 'select(.event_type=="alert")' /var/log/suricata/eve.json | tail -n 5`
@@ -129,7 +119,6 @@ Abra dois terminais:
 
 **Terminal A:** `tail -f /var/log/suricata/fast.log`
 
-[![image.png](https://i.postimg.cc/SsvYbCgW/image.png)](https://postimg.cc/YGQC1GK9)
 
 **Terminal B (caso optar por testar usando `curl` diretamente no terminal):** comandos de disparo (abaixo). Dica: force IPv4 com `-4`.
 
@@ -144,14 +133,10 @@ curl -4 -s 'http://neverssl.com/SURICATA_BROWSER_URI_01' >/dev/null
 # ou navegador: http://neverssl.com/SURICATA_BROWSER_URI_01
 ```
 
-[![image.png](https://i.postimg.cc/6qKrmdq8/image.png)](https://postimg.cc/njd9s9vx)
-
 * Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
 
 **O que observar no log:** uma linha no `fast.log` com a mensagem
 `CUSTOM BROWSER - HTTP URI trigger` (SID **1002001**), indicando tráfego `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
-
-[![image.png](https://i.postimg.cc/7Z52XB9F/image.png)](https://postimg.cc/0zqjy0Ln)
 
 ---
 
@@ -166,15 +151,11 @@ curl -4 -s -X POST -d 'SURICATA_BROWSER_BODY_02' 'http://neverssl.com/' >/dev/nu
 # (opcional para ver o request) curl -4 -v -X POST -d 'SURICATA_BROWSER_BODY_02' 'http://neverssl.com/' >/dev/null
 ```
 
-[![image.png](https://i.postimg.cc/GmPC0RXQ/image.png)](https://postimg.cc/DSzDs9kJ)
-
 * Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
 
 **O que observar no log:** a mensagem
 `CUSTOM BROWSER - HTTP client body trigger` (SID **1002002**).
 Se não disparar de primeira, rode com `-v` e valide que o **POST** saiu; rode novamente.
-
-[![image.png](https://i.postimg.cc/tCQq8B98/image.png)](https://postimg.cc/23GNZFbx)
 
 ---
 
@@ -189,14 +170,10 @@ curl -4 -s -H 'X-Trigger-Lab: 1' 'http://neverssl.com/' >/dev/null
 # (opcional verbose) curl -4 -v -H 'X-Trigger-Lab: 1' 'http://neverssl.com/' >/dev/null
 ```
 
-[![image.png](https://i.postimg.cc/vHtskMqz/image.png)](https://postimg.cc/Ln5wZdMY)
-
 * Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
 
 **O que observar no log:** a mensagem
 `CUSTOM BROWSER - HTTP header X-Trigger-Lab` (SID **1002003**), com fluxo `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
-
-[![image.png](https://i.postimg.cc/ZnmQxvhc/image.png)](https://postimg.cc/FdPG9Rzd)
 
 ---
 
@@ -211,14 +188,10 @@ dig +short suricata-trigger-lab.example >/dev/null
 # ou navegador: http://suricata-trigger-lab.example/
 ```
 
-[![image.png](https://i.postimg.cc/FRyWzFJR/image.png)](https://postimg.cc/BLvcw0p9)
-
 * Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
 
 **O que observar no log:** a mensagem
 `CUSTOM BROWSER - DNS query trigger` (SID **1002004**), com fluxo `{UDP} <IP_VM>:<porta> -> <DNS_resolvedor>:53`.
-
-[![image.png](https://i.postimg.cc/65jHymyX/image.png)](https://postimg.cc/TpbjsQV7)
 
 ---
 
@@ -243,8 +216,6 @@ tail -n 20 /var/log/suricata/fast.log
 jq -r 'select(.event_type=="alert") | "\(.timestamp) SID=\(.alert.signature_id) MSG=\(.alert.signature) \(.src_ip):\(.src_port) -> \(.dest_ip):\(.dest_port)"' \
   /var/log/suricata/eve.json | tail -n 10
 ```
-
-[![image.png](https://i.postimg.cc/tgHFT3tX/image.png)](https://postimg.cc/G4q4gs5N)
 
 ---
 
