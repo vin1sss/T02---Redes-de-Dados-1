@@ -59,111 +59,56 @@ Internet
 
 1. No menu esquerdo, **Grupos de recursos** → **Criar**.
 
-[![image.png](https://i.postimg.cc/8zfcYbKd/image.png)](https://postimg.cc/68wB2CNT)
-
-[![image.png](https://i.postimg.cc/L6Ym48th/image.png)](https://postimg.cc/Tp6zCGHX)
-
 2. **Nome**: `rg-t02`. **Região**: (ex.) `West US 2`.
 
-[![image.png](https://i.postimg.cc/J7yh0xmj/image.png)](https://postimg.cc/5jVJkwXt)
-
 3. **Rever + criar** → **Criar**.
-
-[![image.png](https://i.postimg.cc/pL0NDNJH/image.png)](https://postimg.cc/87rnS0YK)
 
 ### B) **Rede Virtual (VNet)**
 
 1. No menu esquerdo, **Redes virtuais** → **Criar**.
 
-[![image.png](https://i.postimg.cc/Gh5JYqTf/image.png)](https://postimg.cc/PP1wnb4b)
-
-[![image.png](https://i.postimg.cc/W46k9ntz/image.png)](https://postimg.cc/Lq555jtF)
-
 2. **RG ou Grupo de Recursos**: `rg-t02`. **Nome**: `vnet-t02`. **Região**: a mesma das VMs.
-
-[![image.png](https://i.postimg.cc/9XSrYS18/image.png)](https://postimg.cc/Lht9HxcL)
 
 3. Aba **Endereços IP**:
 
    * Espaço: `10.0.0.0/16`
    * Sub-rede **default**: `10.0.0.0/24`
 
-[![image.png](https://i.postimg.cc/9F5qjK96/image.png)](https://postimg.cc/yWjNmfvj)
-
 4. **Rever + criar** → **Criar**.
-
-[![image.png](https://i.postimg.cc/BbMWNdfv/image.png)](https://postimg.cc/p5h1LcTN)
 
 ### C) **VM 1 — `vm1-servidor` (Ubuntu 24.04 LTS, x64 Gen2)**
 
 1. No menu esquerdo, **Máquinas virtuais** → **Criar** → **Máquina virtual**.
 
-[![image.png](https://i.postimg.cc/gJbnP6XN/image.png)](https://postimg.cc/3y9KXNZv)
-
-[![image.png](https://i.postimg.cc/hGTtMPyJ/image.png)](https://postimg.cc/HJWmkHCH)
-
 2. **RG/Grupo de Recursos**: `rg-t02`. **Nome**: `vm1-servidor`.
 3. **Região**: `West US 2` (ou outra com tamanho disponível).
-
-[![image.png](https://i.postimg.cc/rpr7rDhZ/image.png)](https://postimg.cc/Z9Jfk5z6)
 
 4. **Imagem**: *Ubuntu Server 24.04 LTS – x64 Gen2*.
 5. **Tamanho**: `Standard_B1ms` (ou `D2s_v3` se preferir).
 
-[![image.png](https://i.postimg.cc/y8SLfwFP/image.png)](https://postimg.cc/w1g5M44y)
-
 6. **Autenticação**: chave SSH (recomendado) ou senha (apenas laboratório).
-
-[![image.png](https://i.postimg.cc/1X2pw37C/image.png)](https://postimg.cc/hQ8zqcBT)
 
 7. **Regras de porta de entrada**: escolha **“Permitir portas selecionadas”** e marque **SSH (22)** e **HTTP (80)**.
 
    * A porta **1883/TCP** (MQTT) adicionaremos no NSG na etapa “Rede” da VM após criada.
 
-[![image.png](https://i.postimg.cc/XJDF6vW3/image.png)](https://postimg.cc/1nw4ps4Y)
-
 8. Aba **Rede**: garanta **VNet `vnet-t02`** e sub-rede **default**.
-
-[![image.png](https://i.postimg.cc/MpDDHVJb/image.png)](https://postimg.cc/MnnRrcTv)
 
 9. **Rever + criar** → **Criar**.
 
 10. **Transferir chave privada e criar recurso**.
 
-[![image.png](https://i.postimg.cc/ryfM1YGn/image.png)](https://postimg.cc/mh1vRj5C)
-
 11. **Aguardar a conclusão da implementação**
-
-[![image.png](https://i.postimg.cc/3rczJMFp/image.png)](https://postimg.cc/4npWBSMN)
 
 ### D) **VM 2 — `vm2-cliente`**
 
 Repita a criação com **mesmos RG/VNet/Sub-rede**. **Portas de entrada**: **apenas SSH (22)**.
-
-[![image.png](https://i.postimg.cc/sXSKV8j3/image.png)](https://postimg.cc/N9sRDd2n)
-
-[![image.png](https://i.postimg.cc/fWfjBYJS/image.png)](https://postimg.cc/PNNwqpbd)
-
-[![image.png](https://i.postimg.cc/NM7TCwG4/image.png)](https://postimg.cc/MMHvXNQM)
-
-[![image.png](https://i.postimg.cc/0N7JrqSk/image.png)](https://postimg.cc/8FPCn9w9)
-
-[![image.png](https://i.postimg.cc/vBQDBxMv/image.png)](https://postimg.cc/HJhTvxrJ)
-
-[![image.png](https://i.postimg.cc/MpFhHCSs/image.png)](https://postimg.cc/gx3MBBrR)
-
-[![image.png](https://i.postimg.cc/BQDgHRHT/image.png)](https://postimg.cc/7fH0ysBh)
-
-[![image.png](https://i.postimg.cc/gk5DZmx6/image.png)](https://postimg.cc/F7y3ttg9)
 
 ### E) **Abrir porta 1883/TCP (MQTT) para a vm1-servidor**
 
 1. Entre na **vm1-servidor** → **Redes** → **Definições de rede** → **Criar regra de portas** → **Regra de porta de entrada**.
 2. **Intervalos de portas de destino**: `1883`, **Protocolo**: `TCP`, **Ação**: **Permitir**, **Prioridade**: `1000–2000`, **Nome**: `allow-mqtt-1883`.
 3. Adicionar.
-
-[![image.png](https://i.postimg.cc/3JMqsXB7/image.png)](https://postimg.cc/0rfZmJFH)
-
 ---
 
 ## V. Configuração dentro das VMs
