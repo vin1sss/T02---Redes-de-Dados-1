@@ -64,10 +64,6 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
    * Clique em **“Ferramentas”**
    * Clique em **“Gerenciador de Rede”**
    * Clique em **“Redes NAT”**
-  
-   [![image.png](https://i.postimg.cc/G2zQ7ZLq/image.png)](https://postimg.cc/wyyL34sm)
-   
-   [![image.png](https://i.postimg.cc/nzwmQZVw/image.png)](https://postimg.cc/hzTvHkd9)
 
 3. **Se já existir `NatNetwork`, apenas confira se está configurada:**
 
@@ -83,8 +79,6 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
    * Marque **Habilitar DHCP**
    * Confirme com **Aplicar**
    
-   [![image.png](https://i.postimg.cc/dVtK6mCB/image.png)](https://postimg.cc/N5VVfXp9)
-
 5. **Vincular cada VM à `NatNetwork`:**
 
    * Para **VM1** e **VM2** → **Configurações** (*Settings*) → **Rede** (*Network*)
@@ -92,8 +86,6 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
    * OK e **iniciar** as VMs
    * **Senha das VMs: `pytest`**
   
-   [![image.png](https://i.postimg.cc/c4t3HwCP/image.png)](https://postimg.cc/mtRkpcQS)
-
 6. **Verificação rápida dentro das VMs:**
 
    ```bash
@@ -103,8 +95,6 @@ Abra o Wireshark com ```sudo wireshark``` e selecione a **interface da NAT Netwo
 
    > Se o ping falhar, confira se **ambas** estão realmente em **NAT Network (NatNetwork)** (e não em “NAT” simples).
    
-   [![image.png](https://i.postimg.cc/tgsNHTwm/image.png)](https://postimg.cc/FfQLy99j)
-
 ### A) Servidor (VM1)
 
 **Atualizar e instalar:**
@@ -160,7 +150,6 @@ newgrp wireshark
 ```bash
 sudo wireshark
 ```
-[![image.png](https://i.postimg.cc/8krw9grB/image.png)](https://postimg.cc/c60Qtjhr)
 ---
 
 **Visualizar conteúdo dos pacotes:** Clicar com o botão direito no pacote > Follow > TLS Stream (ou o protocolo utilizado no cenário).
@@ -180,8 +169,6 @@ sudo wireshark
    
 2. **No Cliente (VM2) — captura (Wireshark):** usar filtro `http`.
    **O que observar:** requisição `GET / HTTP/1.1` e resposta `200 OK` com **payload legível** (HTML contendo `HELLO_TLS_HTTP`).
-
-[![image.png](https://i.postimg.cc/J407MKMB/image.png)](https://postimg.cc/JGwCQNy1)
 
 > **Lembre-se de reiniciar a captura no Wireshark a cada novo cenário.**
 
@@ -226,7 +213,6 @@ sudo wireshark
 6. **No Cliente (VM2) — captura (Wireshark):** filtro `tls` ou `tcp.port == 443`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello, Certificado) e **payload cifrado**.
 
-[![image.png](https://i.postimg.cc/gcq4mqNz/image.png)](https://postimg.cc/Lh5jVPcw)
 ---
 
 ### Cenário 3 — MQTT **sem TLS** (porta 1883)
@@ -263,8 +249,6 @@ sudo wireshark
 
     *(Mensagens aparecerão no Terminal A do `mosquitto_sub`)*
     
-[![image.png](https://i.postimg.cc/7bvy3FQM/image.png)](https://postimg.cc/y3T5BbKk)
-
 ---
 
 ### Cenário 4 — MQTT **com TLS** (porta 8883)
@@ -353,8 +337,6 @@ sudo wireshark
 
 8. **No Cliente (VM2) — captura (Wireshark):** filtro `tcp.port == 8883` ou `tls`.
    **O que observar:** handshake TLS e **payload cifrado** (não deve aparecer a string `Mensagem com TLS`).
-
-[![image.png](https://i.postimg.cc/28z5KvH6/image.png)](https://postimg.cc/mh5RccWf)
 
 ---
 
