@@ -115,8 +115,6 @@ ip route
 * **Description:** `BLOCK_LAN_HTTP_OUT`
 * **Save** → **Apply Changes**
 
-[![image.png](https://i.postimg.cc/cHKYv8pq/image.png)](https://postimg.cc/N9cLVLGb)
-
 2. **Teste (Cliente):**
 
 ```bash
@@ -125,9 +123,6 @@ curl -v https://example.com       # deve OK
 ```
 
 * Você pode testar acessando os sites **diretamente no navegador** também.
-
-[![image.png](https://i.postimg.cc/N0K7HVT2/image.png)](https://postimg.cc/NywHhddQ)
-[![image.png](https://i.postimg.cc/QMDh9LvM/image.png)](https://postimg.cc/5XsZTr4c)
 
 3. **Logs (pfSense):** **Status > System Logs > Firewall**, filtre por **Interface = LAN** e **porta 80**.
    Verifique entradas **blocked** oriundas do IP do Cliente.
@@ -163,8 +158,6 @@ curl -v https://example.com       # deve OK
 
 > **Importante:** mantenha esta regra **acima** da regra “allow LAN to any”.
 
-[![image.png](https://i.postimg.cc/vHhhn54J/image.png)](https://postimg.cc/rKd5X0Cj)
-
 3. **Teste (Cliente) — navegador**
 
 * Abra **[https://www.wikipedia.org](https://www.wikipedia.org)** → **deve FALHAR** (bloqueado).
@@ -190,8 +183,6 @@ curl -v https://example.com       # deve OK
 * **Description:** `BLOCK_LAN_ICMP_INTERNET`
 * **Save**
 
-[![image.png](https://i.postimg.cc/c4tYxYQF/image.png)](https://postimg.cc/rKczgDZ4)
-
 2. **Adicionar exceção para o gateway (opcional, acima do block):**
 
 * **Action:** *Pass*
@@ -201,16 +192,12 @@ curl -v https://example.com       # deve OK
 * **Description:** `ALLOW_ICMP_TO_GATEWAY`
 * **Save** → **Apply Changes**
 
-[![image.png](https://i.postimg.cc/52MHfr95/image.png)](https://postimg.cc/TpC29CDh)
-
 3. **Teste (Cliente):**
 
 ```bash
 ping -c 2 8.8.8.8          # deve FALHAR
 ping -c 2 192.168.1.1     # deve OK
 ```
-
-[![image.png](https://i.postimg.cc/15bGwM9k/image.png)](https://postimg.cc/F7gkQykp)
 
 4. **Logs:** ver **blocks** ICMP na saída.
 
