@@ -86,7 +86,14 @@ Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**
 
 * Inicie a VM **pfSense** no VirtualBox e aguarde o carregamento completo.
 
-#### A) Associar interfaces de rede
+#### A) Resetar configurações
+
+No terminal do pfSense:
+
+1. Selecione **`4) Reset to factory`**.
+2. Confirme com **`y`**.
+
+#### B) Associar interfaces de rede
 
 Na tela de boas-vindas do pfSense, é possível verificar que existem duas interfaces: **em0** e **em1**.
 
@@ -106,7 +113,7 @@ Na tela de boas-vindas do pfSense, é possível verificar que existem duas inter
 
 5. Aguarde a conclusão. Na tela de boas-vindas, a associação estará atualizada — no teste realizado: **em0 → WAN** e **em1 → LAN**.
 
-#### B) Definir endereço IP da interface WAN
+#### C) Definir endereço IP da interface WAN
 
 Como o adaptador WAN é do tipo **NAT**, o VirtualBox fornece endereço IP automaticamente via DHCP; portanto, a interface será configurada dessa forma.
 
@@ -123,7 +130,7 @@ Como o adaptador WAN é do tipo **NAT**, o VirtualBox fornece endereço IP autom
 
 Após a conclusão, na tela de boas-vindas a linha **WAN** deverá indicar **v4/DHCP** e um endereço IP condizente com a rede NAT do VirtualBox (ex.: `10.0.2.x`).
 
-#### C) Definir endereço estático da interface LAN e configurar DHCP da rede
+#### D) Definir endereço estático da interface LAN e configurar DHCP da rede
 
 Como a **Rede Interna** não possui nenhum serviço DHCP por parte do VirtualBox, o pfSense será responsável por fornecer endereços IP às máquinas conectadas a essa rede.
 
@@ -148,7 +155,7 @@ Como a **Rede Interna** não possui nenhum serviço DHCP por parte do VirtualBox
 
 Quando solicitado que se pressione **Enter**, surgirá a mensagem **"You can access the webConfigurator by opening the following URL in your browser"**, confirmando que o IP foi corretamente configurado. O endereço estático da interface LAN (**`192.168.1.1`**) também será exibido — máquinas conectadas à Rede Interna já podem acessar o pfSense por esse endereço.
 
-#### D) user 2 - Debian — conectar à Rede Interna
+#### E) user 2 - Debian — conectar à Rede Interna
 
 Inicie a VM **user 2 - Debian** e aguarde a obtenção de endereço IP via DHCP do pfSense.
 
