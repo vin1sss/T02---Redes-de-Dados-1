@@ -196,9 +196,9 @@ ping -c2 192.168.1.1 # gateway do pfSense
 * **Interface:** *LAN*
 * **Address Family:** *IPv4*
 * **Protocol:** *TCP*
-* **Source:** *LAN net*
+* **Source:** *LAN net* (subnets)
 * **Destination:** *any*
-* **Destination Port Range:** *HTTP (80)*
+* **Destination Port Range:** `HTTP (80)`
 * **Description:** `BLOCK_LAN_HTTP_OUT`
 * **Save** → **Apply Changes**
 
@@ -238,7 +238,7 @@ curl -v https://example.com       # deve OK
 * **Interface:** *LAN*
 * **Address Family:** *IPv4*
 * **Protocol:** *TCP*
-* **Source:** *LAN net*
+* **Source:** *LAN net* (subnets)
 * **Destination:** **`BLOCK_WIKI`** (o alias criado)
 * **Destination Port Range:** *any*
 * **Description:** `BLOCK_SITE_WIKIPEDIA`
