@@ -13,7 +13,7 @@ Este relatório descreve a configuração de um **firewall pfSense** atuando com
 Você utilizará um **pfSense** com duas interfaces (WAN/LAN) no VirtualBox:
 
 * **WAN**: acesso à Internet via **NAT** do VirtualBox.
-* **LAN**: rede isolada (**Internal Network**) onde ficará a VM **user 2 - Debian**.
+* **LAN**: rede isolada (**Rede Interna**) onde ficará a VM **user 2 - Debian**.
 
 Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**, **bloquear ICMP para Internet**) e verificaremos **logs** no pfSense.
 **Pilares:** **Confidencialidade** e **Disponibilidade**, com ênfase em **Controle de Acesso** e **Auditoria**.
@@ -37,16 +37,16 @@ Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**
 * **VM-pfSense**
 
   * **Adapter 1 (WAN):** **NAT** (DHCP do VBox).
-  * **Adapter 2 (LAN):** **Internal Network** chamada **`LAN_PFS`** (pfSense atende esta LAN).
+  * **Adapter 2 (LAN):** **Rede Interna** chamada **`LAN_PFS`** (pfSense atende esta LAN).
   * **Recursos da VM:** **6 GB de RAM** e **3 núcleos de CPU**
 * **user 2 - Debian**
 
-  * **Adapter 1:** **Internal Network** **`LAN_PFS`** (IP via **DHCP** do pfSense).
+  * **Adapter 1:** **Rede Interna** **`LAN_PFS`** (IP via **DHCP** do pfSense).
   * **Recursos da VM:** **6 GB de RAM** e **3 núcleos de CPU**
 
 > **Assunção para o lab:** usar a **configuração padrão do pfSense** para LAN (ex.: `192.168.1.1/24` com DHCP habilitado). Não trataremos o “primeiro setup” do pfSense neste relatório.
 
-> **Observação:** Diferente do Relatório 10 (NAT Network para ambas as VMs), aqui o pfSense **precisa de duas interfaces** (WAN e LAN). Por isso usamos **NAT** (WAN) + **Internal Network** (LAN).
+> **Observação:** Diferente do Relatório 10 (NAT Network para ambas as VMs), aqui o pfSense **precisa de duas interfaces** (WAN e LAN). Por isso usamos **NAT** (WAN) + **Rede Interna** (LAN).
 
 ---
 
@@ -67,7 +67,7 @@ Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**
 * **Adaptador 2 (LAN):**
 
   * **Habilitar Placa de Rede**
-  * **Conectado a:** **Internal Network**
+  * **Conectado a:** **Rede Interna**
   * **Nome:** **`LAN_PFS`**  ← **digite exatamente este nome** (se não existir, o VirtualBox cria ao salvar).
   * **Anotar o endereço MAC do adaptador** — os últimos 4 caracteres são suficientes para posterior configuração no pfSense.
   <img width="800" height="375" alt="image" src="https://github.com/user-attachments/assets/ca317cf7-a5c4-4fff-b7b3-fd1f3e8ca574" />
@@ -77,7 +77,7 @@ Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**
 2. **user 2 - Debian — conectar à mesma LAN**
 
 * **Botão direito** na VM **user 2 - Debian** → **Configurações** → **Rede**.
-* **Adaptador 1:** **Internal Network** → **Nome:** **`LAN_PFS`**.
+* **Adaptador 1:** **Rede Interna** → **Nome:** **`LAN_PFS`**.
   <img width="802" height="334" alt="image" src="https://github.com/user-attachments/assets/f28dd00a-cc73-4b28-9f10-47232d2b9d10" />
 
 * **OK**.
@@ -105,7 +105,7 @@ Na tela de boas-vindas do pfSense, é possível verificar que existem duas inter
 3. Compare os endereços MAC exibidos com os anotados nas configurações do VirtualBox:
 
    * Para **WAN**, selecione a interface cujo MAC corresponde ao adaptador do tipo **NAT**.
-   * Para **LAN**, selecione a interface cujo MAC corresponde ao adaptador **Internal Network** (`LAN_PFS`).
+   * Para **LAN**, selecione a interface cujo MAC corresponde ao adaptador **Rede Interna** (`LAN_PFS`).
 
 4. Quando perguntado **"Do you want to proceed?"**, digite **`y`** e pressione **Enter**.
 
@@ -325,7 +325,7 @@ Demonstrou-se, com **duas VMs** (pfSense e user 2 - Debian), que o **pfSense** a
 
 ## Apêndice — Troubleshooting rápido
 
-* **user 2 - Debian sem IP na LAN:** confirme **Internal Network `LAN_PFS`** no adaptador e que o **DHCP da LAN** do pfSense está ativo.
+* **user 2 - Debian sem IP na LAN:** confirme **Rede Interna `LAN_PFS`** no adaptador e que o **DHCP da LAN** do pfSense está ativo.
 * **Sem acesso à WebGUI:** use `https://192.168.1.1` (ou IP LAN do pfSense) e aceite o certificado; verifique se a regra **allow LAN to any** não foi removida.
 * **Regra não surte efeito:** lembre-se da avaliação **top-down**; mantenha **blocks acima** do allow geral; habilite **Log** na regra.
 * **Site específico ainda abre:** confirme a **ordem** da regra, o **alias** (`BLOCK_WIKI` → `www.wikipedia.org`), limpe o **cache DNS** do cliente e aguarde a **atualização do alias** pelo pfSense.
