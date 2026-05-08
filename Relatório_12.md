@@ -221,7 +221,7 @@ Aqui iremos validar o bloqueio realizado por meio da interface web do pfSense:
    <!--IMAGEM2-->
 2. Selecione os filtros para interface (`LAN`), porta de destino (`80`).
    <!--IMAGEM3-->
-   Verifique entradas **blocked** oriundas do IP do Debian.
+3. Verifique entradas **blocked** oriundas do IP do Debian.
 
 ---
 
