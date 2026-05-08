@@ -186,7 +186,8 @@ ping -c2 192.168.1.1 # gateway do pfSense
 
 ## V. Procedimentos (Passo a Passo)
 
-> **Importante:** No pfSense, vá em **Firewall > Rules > LAN**. As regras são lidas **de cima para baixo**. Coloque as **regras de bloqueio acima** da regra “allow LAN to any”.
+> [!IMPORTANT]  
+> No pfSense, vá em **Firewall > Rules > LAN**. As regras são lidas **de cima para baixo**. Coloque as **regras de bloqueio acima** da regra “allow LAN to any”.
 
 ### Cenário 1 — Bloquear **HTTP (porta 80)** e permitir **HTTPS**
 
@@ -246,7 +247,8 @@ curl -v https://example.com       # deve OK
 * **Description:** `BLOCK_SITE_WIKIPEDIA`
 * **Save** → **Apply Changes**
 
-> **Importante:** mantenha esta regra **acima** da regra “allow LAN to any”.
+> [!IMPORTANT]  
+> Mantenha esta regra **acima** da regra “allow LAN to any”.
 
 3. **Teste (user 2 - Debian) — navegador**
 
