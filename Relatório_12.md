@@ -160,7 +160,7 @@ Quando solicitado que se pressione **Enter**, surgirá a mensagem **"You can acc
 
 Inicie a VM **user 2 - Debian** e aguarde a obtenção de endereço IP via DHCP do pfSense.
 
-Instale utilitários (se necessário) e verifique a conectividade:
+1. Instale utilitários (se necessário) e verifique a conectividade:
 
 ```bash
 sudo apt update && sudo apt install -y net-tools dnsutils curl
@@ -169,7 +169,7 @@ ip route
 ping -c2 192.168.1.1 # gateway do pfSense
 ```
 
-* **Se o `user 2 - Debian` estava com IP estático, resetar para DHCP:**
+2. **Se o `user 2 - Debian` estava com IP estático, resetar para DHCP:**
 
   ```bash
   IFACE=$(ip route | awk '/default/ {print $5; exit}')
@@ -179,7 +179,8 @@ ping -c2 192.168.1.1 # gateway do pfSense
   ip -4 a show "$IFACE"
   ```
 
-**Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do user 2 - Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
+3. **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do user 2 - Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
+4. Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".
 
 ---
 
