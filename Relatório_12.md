@@ -170,14 +170,13 @@ ping -c2 192.168.1.1 # gateway do pfSense
 ```
 
 2. **Se o `user 2 - Debian` estava com IP estático, resetar para DHCP:**
-
-  ```bash
-  IFACE=$(ip route | awk '/default/ {print $5; exit}')
-  sudo dhclient -r "$IFACE" || true
-  sudo ip addr flush dev "$IFACE"
-  sudo dhclient "$IFACE"
-  ip -4 a show "$IFACE"
-  ```
+   ```bash
+   IFACE=$(ip route | awk '/default/ {print $5; exit}')
+   sudo dhclient -r "$IFACE" || true
+   sudo ip addr flush dev "$IFACE"
+   sudo dhclient "$IFACE"
+   ip -4 a show "$IFACE"
+   ```
 
 3. **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do user 2 - Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
 4. Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".
@@ -191,30 +190,37 @@ ping -c2 192.168.1.1 # gateway do pfSense
 
 ### Cenário 1 — Bloquear **HTTP (porta 80)** e permitir **HTTPS**
 
-**Objetivo:** impedir navegação HTTP em claro; manter HTTPS funcional.
+**Objetivo:** impedir navegação HTTP (em texto claro), mantendo a versão com criptografia (HTTPS) funcional.
 
-1. **pfSense (WebGUI) → Firewall > Rules > LAN → Add (setinha para cima):**
+1. **pfSense (WebGUI):** Na interface web, abra a página Firewall > Rules > LAN, e clique em `Add (seta para cima)`
+   <!--IMAGEM1-->
+2. Defina os parâmetro de necessários, listados abaixo:
+   * **Action:** *Block*
+   * **Interface:** *LAN*
+   * **Address Family:** *IPv4*
+   * **Protocol:** *TCP*
+   * **Source:** *LAN subnets*
+   * **Destination:** *any*
+   * **Destination Port Range:** `HTTP (80)`
+   * Log: (marcar opção)
+   * **Description:** `BLOCK_LAN_HTTP_OUT`
+   * **Save** → **Apply Changes**
+#### Validação 1 (terminal Debian):
+1. Execute o comando abaixo, na tentativa de acessar o domínio `example.com`. Ele deverá falhar, pois a requisição está sendo feita com o protocolo bloqueado (HTTP).
+   ```bash
+   curl -v -m4 http://example.com
+   ```
+   <!--IMAGEM1-->
+2. Em seguida, altere o comando, substituindo `http` por `https`, e execute-o. A requisição deve retornar o código de resposta `200 OK`.
+   <!--IMAGEM2-->
+  
+#### **Validação 2 (Página Logs):**
+Aqui iremos validar o bloqueio realizado por meio da interface web do pfSense:
 
-* **Action:** *Block*
-* **Interface:** *LAN*
-* **Address Family:** *IPv4*
-* **Protocol:** *TCP*
-* **Source:** *LAN net* (subnets)
-* **Destination:** *any*
-* **Destination Port Range:** `HTTP (80)`
-* **Description:** `BLOCK_LAN_HTTP_OUT`
-* **Save** → **Apply Changes**
-
-2. **Teste (user 2 - Debian):**
-
-```bash
-curl -v http://example.com        # deve FALHAR (bloqueado)
-curl -v https://example.com       # deve OK
-```
-
-* Você pode testar acessando os sites **diretamente no navegador** também.
-
-3. **Logs (pfSense):** **Status > System Logs > Firewall**, filtre por **Interface = LAN** e **porta 80**.
+1. Abra a página **Status > System Logs > Firewall**
+   <!--IMAGEM2-->
+2. Selecione os filtros para interface (`LAN`), porta de destino (`80`).
+   <!--IMAGEM3-->
    Verifique entradas **blocked** oriundas do IP do user 2 - Debian.
 
 ---
@@ -335,5 +341,13 @@ Demonstrou-se, com **duas VMs** (pfSense e user 2 - Debian), que o **pfSense** a
 * **Site específico ainda abre:** confirme a **ordem** da regra, o **alias** (`BLOCK_WIKI` → `www.wikipedia.org`), limpe o **cache DNS** do cliente e aguarde a **atualização do alias** pelo pfSense.
 * **`http://neverssl.com` abre mesmo bloqueado:** verifique se a regra de **porta 80** está no **topo** e se não há regra conflitante; confira os **logs** do pfSense.
 * **`ping 8.8.8.8` ainda sai:** confirme a regra **Block ICMP** e que a exceção **ALLOW_ICMP_TO_GATEWAY** está **acima** dela.
+
+
+---
+---
+---
+---
+
+<div class="cm-gap" style="height: 3680px;"></div><div class="cm-line" dir="auto"><span class="ͼ38">4.</span> Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto">---</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ39 ͼ38">##</span><span class="ͼ39"> V. Procedimentos (Passo a Passo)</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> <span class="ͼ3b ͼ38">[</span><span class="ͼ3b">!IMPORTANT</span><span class="ͼ3b ͼ38">]</span><span class="ͼ38">  </span></div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> No pfSense, vá em <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Firewall &gt; Rules &gt; LAN</span><span class="ͼ3d ͼ38">**</span>. As regras são lidas <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">de cima para baixo</span><span class="ͼ3d ͼ38">**</span>. Coloque as <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">regras de bloqueio acima</span><span class="ͼ3d ͼ38">**</span> da regra “allow LAN to any”.</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ39 ͼ38">###</span><span class="ͼ39"> Cenário 1 — Bloquear </span><span class="ͼ39 ͼ3d ͼ38">**</span><span class="ͼ39 ͼ3d">HTTP (porta 80)</span><span class="ͼ39 ͼ3d ͼ38">**</span><span class="ͼ39"> e permitir </span><span class="ͼ39 ͼ3d ͼ38">**</span><span class="ͼ39 ͼ3d">HTTPS</span><span class="ͼ39 ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Objetivo:</span><span class="ͼ3d ͼ38">**</span> impedir navegação HTTP em claro; manter HTTPS funcional.</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">1.</span> No <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">pfSense (WebGUI)</span><span class="ͼ3d ͼ38">**</span>, abra: Firewall &gt; Rules &gt; LAN → Add (setinha para cima):**</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ31">&lt;!-- IMAGEM 000 --&gt;</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">2.</span> Defina as seguintes configurações:</div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Action:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">Block</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Interface:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">LAN</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Address Family:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">IPv4</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Protocol:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">TCP</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Source:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">LAN subnets</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Destination:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">any</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Destination Port Range:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ38">`</span><span class="ͼ3a">HTTP (80)</span><span class="ͼ38">`</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Description:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ38">`</span><span class="ͼ3a">BLOCK_LAN_HTTP_OUT</span><span class="ͼ38">`</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> </div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Save</span><span class="ͼ3d ͼ38">**</span> → <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Apply Changes</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ39 ͼ38">####</span><span class="ͼ39"> Cenário 1: Validação</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">1.</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Validação 1 (HTTP):</span><span class="ͼ3d ͼ38">**</span> </div><div class="cm-line" dir="auto">Na máquina Debian, execute o comando em um terminal. O comando <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">deve falhar</span><span class="ͼ3d ͼ38">**</span> após 4 segundos, devido ao bloqueio <span class="ͼ38">`</span><span class="ͼ3a">HTTP</span><span class="ͼ38">`</span>.</div><div class="cm-line" dir="auto"><span class="ͼ38">```</span>bash</div><div class="cm-line" dir="auto"><span class="ͼ3a">curl -v -m 4 http://example.com</span></div><div class="cm-line" dir="auto"><span class="ͼ38">```</span></div><div class="cm-line" dir="auto"><span class="ͼ31">&lt;!-- IMAGEM 001 --&gt;</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">2.</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Validação 2 (HTTPS):</span><span class="ͼ3d ͼ38">**</span> </div><div class="cm-line" dir="auto">Modifique o comando anterior trocando <span class="ͼ38">`</span><span class="ͼ3a">http</span><span class="ͼ38">`</span> por <span class="ͼ38">`</span><span class="ͼ3a">https</span><span class="ͼ38">`</span>. Ao requisitar com o protocolo <span class="ͼ38">`</span><span class="ͼ3a">HTTPS</span><span class="ͼ38">`</span>, deve-se receber status <span class="ͼ38">`</span><span class="ͼ3a">200 OK</span><span class="ͼ38">`</span>:</div><div class="cm-line" dir="auto"><span class="ͼ38">```</span>bash</div><div class="cm-line" dir="auto"><span class="ͼ3a">curl -v -m 4 https://example.com</span></div><div class="cm-line" dir="auto"><span class="ͼ38">```</span></div><div class="cm-line" dir="auto"><span class="ͼ31">&lt;!-- IMAGEM 002 --&gt;</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">3.</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Validação 3 (Logs):</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto">A validação consiste em visualizar as requisições bloqueadas a partir da interface gráfica do pfSense.</div><div class="cm-line" dir="auto">3.1.</div><div class="cm-line" dir="auto">Abra a  <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Status &gt; System Logs &gt; Firewall</span><span class="ͼ3d ͼ38">**</span>, filtre por <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Interface = LAN</span><span class="ͼ3d ͼ38">**</span> e <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">porta 80</span><span class="ͼ3d ͼ38">**</span>.</div><div class="cm-line" dir="auto">   Verifique entradas <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">blocked</span><span class="ͼ3d ͼ38">**</span> oriundas do IP do Debian.</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ31">&lt;!-- IMAGEM 003 --&gt;</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto">---</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ39 ͼ38">###</span><span class="ͼ39"> Cenário 2 — Bloquear </span><span class="ͼ39 ͼ3d ͼ38">**</span><span class="ͼ39 ͼ3d">um site específico</span><span class="ͼ39 ͼ3d ͼ38">**</span><span class="ͼ39"> (por FQDN/alias)</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Objetivo:</span><span class="ͼ3d ͼ38">**</span> impedir acesso a um domínio específico (ex.: <span class="ͼ38">`</span><span class="ͼ3a">www.wikipedia.org</span><span class="ͼ38">`</span>) mantendo o restante da navegação liberado.</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Como funciona:</span><span class="ͼ3d ͼ38">**</span> no pfSense, um <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Alias</span><span class="ͼ3d ͼ38">**</span> do tipo <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Host(s)</span><span class="ͼ3d ͼ38">**</span> aceita <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">FQDN (Fully Qualified Domain Name)</span><span class="ͼ3d ͼ38">**</span>. O pfSense resolve esse nome para IP(s) e a <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">regra de bloqueio</span><span class="ͼ3d ͼ38">**</span> usa esse alias como <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">destino</span><span class="ͼ3d ͼ38">**</span>.</div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">Obs.: em sites atrás de CDNs os IPs podem mudar; para fins de laboratório, o método é suficiente.</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">Obs. 2: a atualização do alias por FQDN pode levar alguns minutos; em sala, aguarde um curto intervalo antes de repetir o teste.</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">1.</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Criar o Alias (pfSense WebGUI) — Firewall &gt; Aliases &gt; Add</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Name:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ38">`</span><span class="ͼ3a">BLOCK_WIKI</span><span class="ͼ38">`</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Type:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">Host(s)</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Host(s):</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ38">`</span><span class="ͼ3a">www.wikipedia.org</span><span class="ͼ38">`</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Description:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ38">`</span><span class="ͼ3a">FQDN do site a bloquear</span><span class="ͼ38">`</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Save</span><span class="ͼ3d ͼ38">**</span> → <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Apply Changes</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">2.</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Criar a regra de bloqueio (pfSense) — Firewall &gt; Rules &gt; LAN → Add (seta para cima)</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Action:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">Block</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Interface:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">LAN</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Address Family:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">IPv4</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Protocol:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">TCP</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Source:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">LAN subnets</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Destination:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d ͼ38">`</span><span class="ͼ3d ͼ3a">BLOCK_WIKI</span><span class="ͼ3d ͼ38">`</span><span class="ͼ3d ͼ38">**</span> (o alias criado)</div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Destination Port Range:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ3c ͼ38">*</span><span class="ͼ3c">any</span><span class="ͼ3c ͼ38">*</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Description:</span><span class="ͼ3d ͼ38">**</span> <span class="ͼ38">`</span><span class="ͼ3a">BLOCK_SITE_WIKIPEDIA</span><span class="ͼ38">`</span></div><div class="cm-line" dir="auto"><span class="ͼ38">*</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Save</span><span class="ͼ3d ͼ38">**</span> → <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Apply Changes</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> <span class="ͼ3b ͼ38">[</span><span class="ͼ3b">!IMPORTANT</span><span class="ͼ3b ͼ38">]</span><span class="ͼ38">  </span></div><div class="cm-line" dir="auto"><span class="ͼ38">&gt;</span> Mantenha esta regra <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">acima</span><span class="ͼ3d ͼ38">**</span> da regra “allow LAN to any”.</div><div class="cm-line" dir="auto"><br></div><div class="cm-line" dir="auto"><span class="ͼ38">3.</span> <span class="ͼ3d ͼ38">**</span><span class="ͼ3d">Teste (Debian) — navegador</span><span class="ͼ3d ͼ38">**</span></div><div class="cm-gap" style="height: 1760px;"></div>
 * **Sem Internet no user 2 - Debian:** verifique se a **WAN** do pfSense obteve IP via **DHCP** (Status > Interfaces) e se o **NAT de saída** está em *Automatic* (padrão).
 * **Conflitos de rede:** evite sobrepor a LAN (`192.168.1.0/24`) com a sub-rede do NAT do VirtualBox (`10.0.2.0/24`).
