@@ -12,6 +12,8 @@ Este relatório tem como objetivo **montar um laboratório em NAT Network (rede 
 
 Nesta atividade, você configurará duas VMs (**user 1 - Debian** e **user 2 - Debian**) em uma **NAT Network** do VirtualBox para observar, via Wireshark no **user 2 - Debian**, como o TLS protege o conteúdo das mensagens HTTP. Em texto claro, o payload é legível; com TLS, apenas metadados e o **handshake** ficam visíveis.
 
+O TLS cria um canal cifrado sobre TCP por meio do *handshake*, com negociação de chaves de sessão temporárias para proteger o tráfego de aplicação. Na prática, isso reduz a exposição a interceptação e leitura de conteúdo por terceiros no caminho.
+
 **Pilares abordados:** foco em **Confidencialidade** (com menção a Autenticidade/Integridade via certificados e MAC do TLS).
 
 ---
@@ -29,7 +31,7 @@ Nesta atividade, você configurará duas VMs (**user 1 - Debian** e **user 2 - D
 
 **VirtualBox — NAT Network:** `NatNetwork`
 
-> **Atenção (didático):** neste relatório usamos **NAT Network** (rede compartilhada entre VMs). Isso é diferente de **NAT** simples por VM (*Attached to: NAT*), que normalmente não permite comunicação direta entre as VMs.
+> **Atenção:** neste relatório usamos **NAT Network** (rede compartilhada entre VMs). Isso é diferente de **NAT** simples por VM (*Attached to: NAT*), que normalmente não permite comunicação direta entre as VMs.
 
 * **user 1 - Debian (Servidor):** Apache (80/443)
 * **user 2 - Debian (Cliente):** `curl` e **Wireshark** (captura local)
@@ -42,7 +44,7 @@ Nesta atividade, você configurará duas VMs (**user 1 - Debian** e **user 2 - D
 
 ### 1) IPs via DHCP (sem endereçamento manual)
 
-Com **NAT Network (NatNetwork)**, os IPs são atribuídos automaticamente por **DHCP**. Use o **`ip a`** para identificar o IP atual do **user 1 - Debian** e do **user 2 - Debian**. Anote o IP do servidor como **<IP_USER1>** e utilize-o em todos os testes.
+Com **NAT Network (NatNetwork)**, os IPs são atribuídos automaticamente por **DHCP**. Use o **`ip a`** para identificar o IP atual do **user 1 - Debian** e do **user 2 - Debian**. Anote o IP do servidor como **`<IP_USER1>`** e utilize-o em todos os testes.
 
 ### 2) No user 2 - Debian — captura (Wireshark)
 
@@ -58,8 +60,7 @@ Abra o Wireshark com `sudo wireshark` e selecione a **interface da NAT Network**
 
 ## IV. Instalação e Preparação
 
-> [!WARNING]
-> Substitua quaisquer ocorrências de "<IP_USER1>" pelo valor correto no decorrer do relatório.
+> Substitua quaisquer ocorrências de `"<IP_USER1>"` pelo valor correto no decorrer do relatório.
 
 ### 0) **Preparar a rede (VirtualBox → Ferramentas → Redes NAT)**
 
@@ -90,7 +91,7 @@ Abra o Wireshark com `sudo wireshark` e selecione a **interface da NAT Network**
 
    * Para **user 1 - Debian** e **user 2 - Debian** → **Configurações** (*Settings*) → **Rede** (*Network*)
    * **Adaptador 1** (*Adapter 1*) → **Conectado a:** *NAT Network* → **Nome:** `NatNetwork`
-   * OK e **iniciar** as VMs
+   * OK
   
 <img width="808" height="345" alt="image" src="https://github.com/user-attachments/assets/3a4a1d8a-63b4-4c48-b06a-d65de72964a2" />
 
@@ -98,6 +99,9 @@ Abra o Wireshark com `sudo wireshark` e selecione a **interface da NAT Network**
 
    * VirtualBox → **Configurações** → **Sistema** → **Placa-mãe** → **Memória Base: `6144 MB` (6 GB)**
    * VirtualBox → **Configurações** → **Sistema** → **Processador** → **Processadores: `3`**
+   * Após ajustar os recursos, **iniciar** as VMs
+
+<img width="450" height="122" alt="image" src="https://github.com/user-attachments/assets/68e06263-2b2e-4d54-bbd1-a9ece015e47f" />
 
 6. **Verificação rápida dentro das VMs:**
 
@@ -130,6 +134,7 @@ sudo apt update && sudo apt install -y apache2 openssl
 **Criar página de teste (conteúdo identificável):**
 
 ```bash
+sudo mkdir -p /var/www/html
 echo "<h1>HELLO_TLS_HTTP</h1>" | sudo tee /var/www/html/index.html
 ```
 
@@ -140,6 +145,8 @@ sudo systemctl enable --now apache2
 ss -tulpn | grep :80
 ```
 
+<img width="727" height="217" alt="image" src="https://github.com/user-attachments/assets/0dd44543-8a01-45fb-8107-b177869e9a73" />
+
 ### B) user 2 - Debian (Cliente)
 
 **Instalar cliente HTTP e Wireshark:**
@@ -147,7 +154,8 @@ ss -tulpn | grep :80
 > Observação: escolha "Yes" na configuração do Wireshark
 
 ```bash
-sudo apt update && sudo apt install -y curl wireshark
+sudo apt update
+sudo apt install -y curl wireshark
 sudo dpkg-reconfigure wireshark-common
 sudo usermod -aG wireshark $USER
 newgrp wireshark
@@ -172,8 +180,14 @@ sudo wireshark
 curl -v http://<IP_USER1>
 ```
 
-3. **No Wireshark:** usar filtro `http`.
+<img width="467" height="417" alt="image" src="https://github.com/user-attachments/assets/3c0016d3-3879-4451-94a3-f9b2ad3f8a92" />
+
+3. **Pause a captura no Wireshark:** usar filtro `http && ip.addr == <IP_USER2>`.
    **O que observar:** requisição `GET / HTTP/1.1` e resposta `200 OK` com **payload legível** (HTML contendo `HELLO_TLS_HTTP`).
+
+<img width="897" height="532" alt="image" src="https://github.com/user-attachments/assets/43497e00-b9d0-436b-8072-859dcaa368e0" />
+<img width="512" height="332" alt="image" src="https://github.com/user-attachments/assets/2310e98c-7f1a-40fc-887a-592cdceb22a9" />
+
 
 > **Lembre-se de reiniciar a captura no Wireshark para o próximo cenário.**
 
@@ -209,9 +223,9 @@ ss -tulpn | grep :443
 
 **No user 2 - Debian:**
 
-4. No Wireshark, aplicar o filtro `tcp.stream eq 0` na barra de filtros.
-5. Selecionar **"Restart current capture"** (ícone verde ▶ no topo do Wireshark) para reiniciar a captura com o filtro já aplicado.
-6. Executar teste HTTPS:
+4. No Wireshark, aplique o filtro `tcp.stream eq 0` na barra de filtros.
+5. Selecione **"Restart current capture"** (ícone verde ▶ no topo do Wireshark) para reiniciar a captura com o filtro já aplicado.
+6. Execute o teste HTTPS:
 
 ```bash
 curl -vk https://<IP_USER1>
@@ -219,8 +233,13 @@ curl -vk https://<IP_USER1>
 
 > O `-k` é intencional no laboratório: ele permite seguir com certificado autoassinado.
 
-7. No Wireshark, observar os pacotes capturados.
+<img width="766" height="875" alt="image" src="https://github.com/user-attachments/assets/b612937e-31f3-40ec-9cfc-715101247637" />
+
+7. No Wireshark, observe os pacotes capturados: usar filtro `tls && ip.addr == <IP_USER2>`.
    **O que observar:** pacotes de **handshake TLS** (ClientHello/ServerHello/Certificado) e **payload cifrado**.
+
+<img width="1086" height="420" alt="image" src="https://github.com/user-attachments/assets/033753e3-daae-4dfd-966a-ce779528bdf9" />
+<img width="1188" height="701" alt="image" src="https://github.com/user-attachments/assets/304bdb65-de32-46b1-a97e-19e5b85d3833" />
 
 ---
 

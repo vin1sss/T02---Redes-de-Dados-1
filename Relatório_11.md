@@ -12,6 +12,8 @@ Este relatório descreve a configuração de um **IDS** com **Suricata** **diret
 
 A única VM (Debian Desktop) atuará como **sensor IDS** (Suricata) e como **cliente** que gera tráfego. As regras locais foram desenhadas para disparar alertas de forma controlada e didática (URI, BODY/POST, HEADER e DNS).
 
+Um IDS de rede opera de forma passiva: observa os pacotes, aplica assinaturas/regras de inspeção e gera alertas quando encontra padrões suspeitos, sem bloquear diretamente o tráfego. No Suricata, essa detecção ocorre com inspeção profunda de protocolos (DPI), permitindo visibilidade de elementos como URI, cabeçalhos, corpo HTTP e consultas DNS.
+
 **Pilares:** **Confidencialidade** e **Monitoramento/Detecção**, com ênfase em **auditoria** e **visibilidade** do tráfego.
 
 ---
@@ -112,6 +114,8 @@ sudo suricata -T -S /etc/suricata/rules/local.rules -v
 # esperado: "4 rules successfully loaded, 0 failed"
 ```
 
+<img width="1237" height="535" alt="image" src="https://github.com/user-attachments/assets/6af89f35-15a0-470d-a964-1f63724d2e8a" />
+
 ### D) Iniciar o Suricata (modo IDS) — **manual, sem `--set`**
 
 > Em Debian, usar `--set outputs.*` pode causar erro de “child node (null)”. Usaremos o YAML padrão.
@@ -143,6 +147,7 @@ Abra dois terminais:
 
 **Terminal A:** `tail -f /var/log/suricata/fast.log`
 
+<img width="611" height="91" alt="image" src="https://github.com/user-attachments/assets/f7e2bad4-8a20-4919-979f-dd084d40962b" />
 
 **Terminal B (caso optar por testar usando `curl` diretamente no terminal):** comandos de disparo (abaixo). Dica: force IPv4 com `-4`.
 
@@ -157,10 +162,12 @@ curl -4 -s 'http://neverssl.com/SURICATA_BROWSER_URI_01' >/dev/null
 # ou navegador: http://neverssl.com/SURICATA_BROWSER_URI_01
 ```
 
-* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
+* Caso demore para executar ou alertar, aguarde. Este comportamento é esperado.
+
+<img width="1785" height="207" alt="image" src="https://github.com/user-attachments/assets/75343aec-013b-4504-be75-92acb3f86fa6" />
 
 **O que observar no log:** uma linha no `fast.log` com a mensagem
-`CUSTOM BROWSER - HTTP URI trigger` (SID **1002001**), indicando tráfego `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
+`CUSTOM BROWSER - HTTP URI trigger` (SID 1002001), indicando tráfego `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
 
 ---
 
@@ -175,10 +182,12 @@ curl -4 -s -X POST -d 'SURICATA_BROWSER_BODY_02' 'http://neverssl.com/' >/dev/nu
 # (opcional para ver o request) curl -4 -v -X POST -d 'SURICATA_BROWSER_BODY_02' 'http://neverssl.com/' >/dev/null
 ```
 
-* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
+* Caso demore para executar ou alertar, aguarde. Este comportamento é esperado.
+
+<img width="1785" height="218" alt="image" src="https://github.com/user-attachments/assets/24087409-8c8b-4a65-b4f8-8fe91cf8ccb7" />
 
 **O que observar no log:** a mensagem
-`CUSTOM BROWSER - HTTP client body trigger` (SID **1002002**).
+`CUSTOM BROWSER - HTTP client body trigger` (SID 1002002).
 Se não disparar de primeira, rode com `-v` e valide que o **POST** saiu; rode novamente.
 
 ---
@@ -194,10 +203,12 @@ curl -4 -s -H 'X-Trigger-Lab: 1' 'http://neverssl.com/' >/dev/null
 # (opcional verbose) curl -4 -v -H 'X-Trigger-Lab: 1' 'http://neverssl.com/' >/dev/null
 ```
 
-* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
+* Caso demore para executar ou alertar, aguarde. Este comportamento é esperado.
+
+<img width="1782" height="256" alt="image" src="https://github.com/user-attachments/assets/6f87fb49-cc08-4880-9b18-6cc2c3657e72" />
 
 **O que observar no log:** a mensagem
-`CUSTOM BROWSER - HTTP header X-Trigger-Lab` (SID **1002003**), com fluxo `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
+`CUSTOM BROWSER - HTTP header X-Trigger-Lab` (SID 1002003), com fluxo `{TCP} <IP_VM>:<porta> -> <IP_destino>:80`.
 
 ---
 
@@ -212,10 +223,12 @@ dig +short suricata-trigger-lab.example >/dev/null
 # ou navegador: http://suricata-trigger-lab.example/
 ```
 
-* Caso demorar para executar ou alertar, aguarde, este comportamento é esperado.
+* Caso demore para executar ou alertar, aguarde. Este comportamento é esperado.
+
+<img width="1777" height="287" alt="image" src="https://github.com/user-attachments/assets/5cb962e1-b239-4938-ac74-6255a2d782f4" />
 
 **O que observar no log:** a mensagem
-`CUSTOM BROWSER - DNS query trigger` (SID **1002004**), com fluxo `{UDP} <IP_VM>:<porta> -> <DNS_resolvedor>:53`.
+`CUSTOM BROWSER - DNS query trigger` (SID 1002004), com fluxo `{UDP} <IP_VM>:<porta> -> <DNS_resolvedor>:53`.
 
 ---
 
@@ -225,10 +238,10 @@ dig +short suricata-trigger-lab.example >/dev/null
 
 | Cenário | Tráfego                      | Regra envolvida (msg)                        | SID     | Resultado esperado | Onde verificar     |
 | :-----: | ---------------------------- | -------------------------------------------- | ------- | ------------------ | ------------------ |
-|    1    | user 1 - Debian → Internet (HTTP/URI)    | `CUSTOM BROWSER - HTTP URI trigger`          | 1002001 | **Alertas**        | `fast.log` / `eve` |
-|    2    | user 1 - Debian → Internet (HTTP/Body)   | `CUSTOM BROWSER - HTTP client body trigger`  | 1002002 | **Alertas**        | `fast.log` / `eve` |
-|    3    | user 1 - Debian → Internet (HTTP/Header) | `CUSTOM BROWSER - HTTP header X-Trigger-Lab` | 1002003 | **Alertas**        | `fast.log` / `eve` |
-|    4    | user 1 - Debian → Internet (DNS)         | `CUSTOM BROWSER - DNS query trigger`         | 1002004 | **Alertas**        | `fast.log` / `eve` |
+|    1    | user 1 - Debian → Internet (HTTP/URI)    | `CUSTOM BROWSER - HTTP URI trigger`          | 1002001 | **Alertas**        | `fast.log` / `eve.json` |
+|    2    | user 1 - Debian → Internet (HTTP/Body)   | `CUSTOM BROWSER - HTTP client body trigger`  | 1002002 | **Alertas**        | `fast.log` / `eve.json` |
+|    3    | user 1 - Debian → Internet (HTTP/Header) | `CUSTOM BROWSER - HTTP header X-Trigger-Lab` | 1002003 | **Alertas**        | `fast.log` / `eve.json` |
+|    4    | user 1 - Debian → Internet (DNS)         | `CUSTOM BROWSER - DNS query trigger`         | 1002004 | **Alertas**        | `fast.log` / `eve.json` |
 
 ### 2) Coleta rápida e critérios de sucesso (guia)
 
