@@ -101,17 +101,18 @@ Na tela de boas-vindas do pfSense, é possível verificar que existem duas inter
 
 
 1. Digite **`1`** e pressione **Enter** para selecionar **"Assign Interfaces"**.
-2. Serão exibidas as interfaces disponíveis (**em0** e **em1**) com seus respectivos **endereços MAC**.
-3. Compare os endereços MAC exibidos com os anotados nas configurações do VirtualBox:
+2. Quando perguntado **"Should VLAN be set up now?**, digite **`n`** e pressione **Enter**.
+3. Serão exibidas as interfaces disponíveis (**em0** e **em1**) com seus respectivos **endereços MAC**.
+4. Compare os endereços MAC exibidos com os anotados nas configurações do VirtualBox:
 
    * Para **WAN**, selecione a interface cujo MAC corresponde ao adaptador do tipo **NAT**.
    * Para **LAN**, selecione a interface cujo MAC corresponde ao adaptador **Rede Interna** (`LAN_PFS`).
 
-4. Quando perguntado **"Do you want to proceed?"**, digite **`y`** e pressione **Enter**.
+5. Quando perguntado **"Do you want to proceed?"**, digite **`y`** e pressione **Enter**.
 
 <img width="800" alt="001 associacao de interfaces no pfsense" src="https://github.com/user-attachments/assets/a8dd0bcc-f28d-4292-a8a2-969345070ee7" />
 
-5. Aguarde a conclusão. Na tela de boas-vindas, a associação estará atualizada — no teste realizado: **em0 → WAN** e **em1 → LAN**.
+6. Aguarde a conclusão. Na tela de boas-vindas, a associação estará atualizada — no teste realizado: **em0 → WAN** e **em1 → LAN**.
 
 #### C) Definir endereço IP da interface WAN
 
