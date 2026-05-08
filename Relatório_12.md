@@ -193,7 +193,7 @@ ping -c2 192.168.1.1 # gateway do pfSense
 **Objetivo:** impedir navegação HTTP (em texto claro), mantendo a versão com criptografia (HTTPS) funcional.
 
 1. **pfSense (WebGUI):** Na interface web, abra a página Firewall > Rules > LAN, e clique em `Add (seta para cima)`
-   <!--IMAGEM1-->
+   <img width="800" alt="000 cenario 1 interface web abrindo pagina rules" src="https://github.com/user-attachments/assets/f697d5ae-16d7-4d85-977e-95004caaaff4" />
 2. Defina os parâmetro de necessários, listados abaixo:
    * **Action:** *Block*
    * **Interface:** *LAN*
@@ -210,18 +210,19 @@ ping -c2 192.168.1.1 # gateway do pfSense
    ```bash
    curl -v -m4 http://example.com
    ```
-   <!--IMAGEM1-->
+   <img width="800" alt="001 cenario1 validacao1 falha ao requisitar HTTP" src="https://github.com/user-attachments/assets/e62fcfa9-7746-464c-a0ec-03b11057337e" />
+
 2. Em seguida, altere o comando, substituindo `http` por `https`, e execute-o. A requisição deve retornar o código de resposta `200 OK`.
-   <!--IMAGEM2-->
+   <img width="800" alt="002 cenario1 validacao2 sucesso ao requisitar HTTPS" src="https://github.com/user-attachments/assets/409fb7f4-176d-4389-918e-a2290bbd6c9d" />
+
   
 #### **Validação 2 (Página Logs):**
 Aqui iremos validar o bloqueio realizado por meio da interface web do pfSense:
 
 1. Abra a página **Status > System Logs > Firewall**
-   <!--IMAGEM2-->
 2. Selecione os filtros para interface (`LAN`), porta de destino (`80`).
-   <!--IMAGEM3-->
 3. Verifique entradas **blocked** oriundas do IP do Debian.
+   <img width="800" alt="003 cenario1 aplicando filtros na pagina Logs" src="https://github.com/user-attachments/assets/f3294c68-a7ce-421f-a93c-ddf7095b6351" />
 
 ---
 
