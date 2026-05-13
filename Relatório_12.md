@@ -130,7 +130,7 @@ Como o adaptador WAN é do tipo **NAT**, o VirtualBox fornece endereço IP autom
 2. Selecione o número correspondente à **WAN** (no teste realizado: **`1`**) e pressione **Enter**.
 3. **"Configure IPv4 address WAN interface via DHCP?"** → Digite **`y`** e pressione **Enter**.
 4. **"Configure IPv6 address WAN interface via DHCP6?"** → Digite **`n`** e pressione **Enter**.
-5. Pressione **Enter**.
+5. Pressione **Enter** (para que o endereço IPv6 não seja configurado).
 6. **"Do you want to revert to HTTP as the webConfigurator protocol?"** → Digite **`n`** e pressione **Enter**.
 
 <img width="800" alt="002 atribuindo DHCP para interface WAN" src="https://github.com/user-attachments/assets/47148e09-163d-4138-9e53-c1bfd7607010" />
