@@ -89,6 +89,7 @@ Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**
 3. **Ligar o pfSense**
 
 * Inicie a VM **pfSense** no VirtualBox e aguarde o carregamento completo.
+* (opcional): No menu superior **"Visualisar" > "Tela virtual 1" > "Escalonar para 200%"**. Isso facilita a visualização no terminal.
 
 #### A) Resetar configurações
 
