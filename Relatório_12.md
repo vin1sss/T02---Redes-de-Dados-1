@@ -95,7 +95,7 @@ Aplicaremos **regras** (ex.: **bloquear HTTP**, **bloquear um site específico**
 
 No terminal do pfSense:
 
-1. Selecione **`4) Reset to factory`**.
+1. Selecionar a opção **`4) Reset to factory`**: Digite 4. Pressione Enter.
 2. Confirme com **`y`**.
 
 #### B) Associar interfaces de rede
