@@ -164,50 +164,70 @@ Como a **Rede Interna** não possui nenhum serviço DHCP por parte do VirtualBox
 
 Quando solicitado que se pressione **Enter**, surgirá a mensagem **"You can access the webConfigurator by opening the following URL in your browser"**, confirmando que o IP foi corretamente configurado. O endereço estático da interface LAN (**`192.168.1.1`**) também será exibido — máquinas conectadas à Rede Interna já podem acessar o pfSense por esse endereço.
 
-#### E) Debian — conectar à Rede Interna
+#### E) Debian — Conectar à Rede Interna
+#### E) Debian — Conectar à Rede Interna
 
-Inicie a VM **Debian** e aguarde a obtenção de endereço IP via DHCP do pfSense.
-   
-1. Configuração do NetworkManager (Recomendado):
-   * **Limpe o arquivo de interfaces:**
-   Remova qualquer configuração de interface física (ex: `eth0`, `enp...`) do arquivo `/etc/network/interfaces`. Deixe apenas o loopback para evitar conflitos:
-   ```bash
-   # Deixe apenas isso:
-   auto lo
-   iface lo inet loopback
-   ```
-   * **Verifique o NetworkManager:**
-   * Certifique-se de que o serviço está rodando:
+Inicie a VM **Debian**.
+
+1. **Verifique se o NetworkManager está instalado e ativo:**
    ```bash
    systemctl status NetworkManager
    ```
-   * **Configure o Perfil:**
-   Em vez de comandos isolados, use a interface das **Configurações do sistema** (Gnome/KDE) para editar o perfil da rede ou criar um novo.
-      * Vá em **Configurações > Rede**.
-      * Clique na engrenagem da sua conexão.
-      * Em **IPv4**, garanta que esteja em **Automático (DHCP)**.
-   * **Reinicie para aplicar:**
+   - Se o serviço não existir, instale-o:
+     ```bash
+     sudo apt install -y network-manager
+     ```
+   - Se estiver instalado mas parado, inicie:
+     ```bash
+     sudo systemctl enable --now NetworkManager
+     ```
+
+2. **Descubra o nome da interface de rede:**
+   ```bash
+   ip link show
+   ```
+   Anote o nome da interface (ex: `eth0`, `enp0s3`). Substitua `<interface>` nos comandos seguintes.
+
+3. **Derrube a interface para descarregar a configuração antiga:**
+   ```bash
+   sudo ip link set <interface> down
+   ```
+
+4. **Limpe o arquivo de interfaces** — abra com `sudo nano /etc/network/interfaces` e deixe apenas o loopback:
+   ```
+   auto lo
+   iface lo inet loopback
+   ```
+
+5. **Crie um perfil DHCP no NetworkManager:**
+   ```bash
+   sudo nmcli connection add type ethernet ifname <interface> con-name "LAN" ipv4.method auto connection.autoconnect yes
+   ```
+
+6. **Reinicie o NetworkManager e ative a conexão:**
    ```bash
    sudo systemctl restart NetworkManager
+   sudo nmcli connection up "LAN"
    ```
-   
-2. Verifique a conectividade:
+
+7. **Verifique a conectividade:**
    ```bash
-   ip a           # deve obter IP na sub-rede da LAN
-   ip route       # verifique se o gateway padrão aponta para o pfSense
+   ip a        # deve exibir um IP na sub-rede da LAN
+   ip route    # o gateway padrão deve apontar para o pfSense
    ping -c2 8.8.8.8
    ```
-   
-3. Instale utilitários: 
+
+8. **Instale utilitários de rede:**
    ```bash
    sudo apt update && sudo apt install -y net-tools dnsutils curl
    ```
-   **Importante:** Os comandos `sudo apt update` e `sudo apt install` necessitam de acesso a Internet.
 
-4. **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
-5. Aqui, ignorar aviso de segurança para certificado (do pfSense) ausente. Selecione "Advanced..." e "Accept the Risk and Continue".
-   <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
-6. Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".
+9. **Acesse a WebGUI do pfSense:** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense).
+
+10. Ignore o aviso de certificado autoassinado: clique em **Advanced...** e depois em **Accept the Risk and Continue**.
+    <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
+
+11. Credenciais de acesso: usuário `admin`, senha `pfsense`.
 
 ---
 
