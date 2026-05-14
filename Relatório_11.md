@@ -62,6 +62,8 @@ Um IDS de rede opera de forma passiva: observa os pacotes, aplica assinaturas/re
 
 | Item | Uso |
 | --- | --- |
+| Senha das máquinas virtuais | **`pytest`** |
+| Senha solicitada pelo `sudo` | **`pytest`** |
 | Interface de saída da VM | Confirmada com `ip route get 1.1.1.1` |
 | `enp0s3` | Nome usado nos exemplos do relatório para a interface monitorada |
 | `/etc/suricata/rules/local.rules` | Arquivo das regras locais do experimento |
@@ -78,16 +80,25 @@ Um IDS de rede opera de forma passiva: observa os pacotes, aplica assinaturas/re
 ## IV. Instalação e Preparação
 
 > Se a interface indicada por `ip route get 1.1.1.1` não for `enp0s3`, substitua apenas esse nome nos comandos de inicialização e captura que usam a interface de rede.
+> Mantenha essa interface anotada antes de seguir, pois ela será usada na inicialização do Suricata e nos comandos de verificação do laboratório.
 
 ### 1) Preparar o ambiente no VirtualBox
 
 * **VM:** `user 1 - Debian`
 * **Adapter 1:** **NAT** (DHCP do VirtualBox)
+
+<img width="800" height="372" alt="image" src="https://github.com/user-attachments/assets/518f2ddb-4262-4f51-bb8d-7c9dd8cb2e6b" />
+
 * **Recursos da VM:** **6 GB de RAM** e **3 núcleos de CPU**
+
+<img width="462" height="126" alt="image" src="https://github.com/user-attachments/assets/11c305c2-950f-4493-996b-427af0095074" />
+
+
+* **Iniciar a VM**
 
 > **Ao final desta etapa:** a VM deve estar configurada em **NAT**, com os recursos previstos e pronta para receber endereçamento via DHCP.
 
-### 2) Conferir a rede e padronizar o DHCP
+### 2) Após iniciar a VM, conferir a rede e padronizar o DHCP
 
 #### A) Padronizar a interface em DHCP
 
@@ -99,6 +110,8 @@ sudo dhclient "$IFACE"
 ip -4 a show "$IFACE"
 ```
 
+<img width="726" height="235" alt="image" src="https://github.com/user-attachments/assets/905455e8-4a02-4a6a-ab2e-5e7f0ebad5d7" />
+
 #### B) Validar IP, saída para Internet e interface monitorada
 
 ```bash
@@ -106,6 +119,8 @@ ip a                    # deve obter IP 10.0.2.x (NAT do VBox)
 ping -c2 1.1.1.1        # checar saída para internet
 ip route get 1.1.1.1    # confirmar interface de saída (ex.: enp0s3)
 ```
+
+<img width="1052" height="538" alt="image" src="https://github.com/user-attachments/assets/50ad173d-5d56-426f-bc52-58c3e6b848a3" />
 
 > **Resultado esperado:** a VM deve apresentar um IP coerente com a rede NAT do VirtualBox, alcançar `1.1.1.1` e indicar a interface de saída usada pelo tráfego observado no laboratório.
 
@@ -121,6 +136,8 @@ sudo pkill -x packagekitd || true
 sudo dpkg --configure -a
 ```
 
+<img width="488" height="87" alt="image" src="https://github.com/user-attachments/assets/d30e0ae4-9ecf-491a-8501-b15edcc568c7" />
+
 > **Ao final desta etapa:** o sistema deve estar liberado para instalar os pacotes do laboratório sem conflito de gerenciador de pacotes.
 
 ### 4) Instalar utilitários e Suricata
@@ -128,6 +145,8 @@ sudo dpkg --configure -a
 ```bash
 sudo apt update && sudo apt install -y dnsutils net-tools curl wget suricata tcpdump jq
 ```
+
+<img width="913" height="425" alt="image" src="https://github.com/user-attachments/assets/4ea2ec37-be75-4134-965c-24403e454204" />
 
 > **Ao final desta etapa:** todas as ferramentas necessárias para gerar tráfego, monitorar a rede e consultar alertas devem estar instaladas.
 
@@ -155,6 +174,8 @@ alert udp any any -> any 53 (msg:"CUSTOM BROWSER - DNS query trigger"; dns.query
 RULES
 ```
 
+<img width="1106" height="233" alt="image" src="https://github.com/user-attachments/assets/5ab11d4f-11c8-4de4-ac55-a93533803b58" />
+
 #### C) Validar a sintaxe das regras
 
 ```bash
@@ -162,7 +183,7 @@ sudo suricata -T -S /etc/suricata/rules/local.rules -v
 # esperado: "4 rules successfully loaded, 0 failed"
 ```
 
-<img width="1237" height="535" alt="image" src="https://github.com/user-attachments/assets/6af89f35-15a0-470d-a964-1f63724d2e8a" />
+<img width="1178" height="391" alt="image" src="https://github.com/user-attachments/assets/480cb59f-ded9-49f3-bfbf-3d3b8d5fdedb" />
 
 > **Ao final desta etapa:** o arquivo de regras deve existir e o Suricata deve confirmar o carregamento correto das **4 regras locais**.
 
@@ -187,6 +208,8 @@ ps aux | grep '[s]uricata'
 sudo tail -n 15 /var/log/suricata/suricata.log
 ```
 
+<img width="1176" height="677" alt="image" src="https://github.com/user-attachments/assets/bb721063-caf0-46e3-947c-1a2e5157cdea" />
+
 #### B) Confirmar onde os alertas serão acompanhados
 
 **Onde ver alertas:** `tail -f /var/log/suricata/fast.log`
@@ -206,6 +229,7 @@ Antes de iniciar os cenários, confirme:
 * as **4 regras locais** foram validadas com `suricata -T`;
 * o processo do **Suricata** está em execução;
 * o terminal de acompanhamento do `fast.log` está aberto;
+* a interface monitorada foi identificada previamente (ex.: **`enp0s3`**);
 * a VM possui conectividade para gerar o tráfego HTTP e DNS do experimento.
 
 ### Organização dos terminais
@@ -344,6 +368,9 @@ jq -r 'select(.event_type=="alert") | "\(.timestamp) SID=\(.alert.signature_id) 
 ```
 
 > Use esta coleta rápida ao final dos cenários para consolidar a evidência dos alertas em formato textual ou JSON.
+
+
+<img width="1900" height="338" alt="image" src="https://github.com/user-attachments/assets/8cbeaf01-02c1-49a8-9517-e756fd0f9a29" />
 
 ---
 
