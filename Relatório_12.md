@@ -169,6 +169,8 @@ Quando solicitado que se pressione **Enter**, surgirá a mensagem **"You can acc
 
 Inicie a VM **Debian**.
 
+> **Importante:** nos relatórios do Bloco 1, as configurações de rede foram definidas pela interface gráfica do Ubuntu, que interage com o **NetworkManager**. Agora, utilizaremos uma segunda forma de configurar a interface de rede: editando diretamente o arquivo `/etc/network/interfaces`.
+
 1. **Descubra o nome da interface de rede:**
    ```bash
    ip link show
