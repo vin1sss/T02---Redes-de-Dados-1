@@ -187,6 +187,9 @@ ping -c2 192.168.1.1 # gateway do pfSense
    ```
 
 3. **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
+4. Aqui, ignorar aviso de segurança para certificado (do pfSense) ausente. Selecione "Advanced..." e "Accept the Risk and Continue".
+   <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
+
 4. Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".
 
 ---
