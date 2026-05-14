@@ -169,67 +169,51 @@ Quando solicitado que se pressione **Enter**, surgirá a mensagem **"You can acc
 
 Inicie a VM **Debian**.
 
-1. **Verifique se o NetworkManager está instalado e ativo:**
-   ```bash
-   systemctl status NetworkManager
-   ```
-   - Se o serviço não existir, instale-o:
-     ```bash
-     sudo apt install -y network-manager
-     ```
-   - Se estiver instalado mas parado, inicie:
-     ```bash
-     sudo systemctl enable --now NetworkManager
-     ```
-
-2. **Descubra o nome da interface de rede:**
+1. **Descubra o nome da interface de rede:**
    ```bash
    ip link show
    ```
    Anote o nome da interface (ex: `eth0`, `enp0s3`). Substitua `<interface>` nos comandos seguintes.
 
-3. **Derrube a interface para descarregar a configuração antiga:**
+2. **Edite o arquivo de interfaces:**
    ```bash
-   sudo ip link set <interface> down
+   sudo nano /etc/network/interfaces
    ```
-
-4. **Limpe o arquivo de interfaces** — abra com `sudo nano /etc/network/interfaces` e deixe apenas o loopback:
+   Remova qualquer configuração existente da interface física e substitua pela configuração DHCP. O arquivo deve ficar assim:
    ```
    auto lo
    iface lo inet loopback
+
+   auto <interface>
+   iface <interface> inet dhcp
    ```
 
-5. **Crie um perfil DHCP no NetworkManager:**
+3. **Recarregue a interface para aplicar:**
    ```bash
-   sudo nmcli connection add type ethernet ifname <interface> con-name "LAN" ipv4.method auto connection.autoconnect yes
+   sudo ifdown <interface> ; sudo ifup <interface>
    ```
 
-6. **Reinicie o NetworkManager e ative a conexão:**
-   ```bash
-   sudo systemctl restart NetworkManager
-   sudo nmcli connection up "LAN"
-   ```
-
-7. **Verifique a conectividade:**
+4. **Verifique a conectividade:**
    ```bash
    ip a        # deve exibir um IP na sub-rede da LAN
    ip route    # o gateway padrão deve apontar para o pfSense
    ping -c2 8.8.8.8
    ```
 
-8. **Instale utilitários de rede:**
+5. **Instale utilitários de rede:**
    ```bash
    sudo apt update && sudo apt install -y net-tools dnsutils curl
    ```
 
-9. **Acesse a WebGUI do pfSense:** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense).
+6. **Acesse a WebGUI do pfSense:** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense).
 
-10. Ignore o aviso de certificado autoassinado: clique em **Advanced...** e depois em **Accept the Risk and Continue**.
-    <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
+7. Ignore o aviso de certificado autoassinado: clique em **Advanced...** e depois em **Accept the Risk and Continue**.
+   <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
 
-11. Credenciais de acesso: usuário `admin`, senha `pfsense`.
+8. Credenciais de acesso: usuário `admin`, senha `pfsense`.
 
 ---
+
 
 ## V. Procedimentos (Passo a Passo)
 
