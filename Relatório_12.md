@@ -207,7 +207,7 @@ Inicie a VM **Debian**.
    sudo apt update && sudo apt install -y net-tools dnsutils curl
    ```
 
-6. **Acesse a WebGUI do pfSense:** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense).
+6. **Acesse a WebGUI do pfSense:** no navegador do Debian, abra `https://192.168.1.1` (o IP LAN do pfSense).
 
 7. Ignore o aviso de certificado autoassinado: clique em **Advanced...** e depois em **Accept the Risk and Continue**.
    <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
