@@ -167,30 +167,47 @@ Quando solicitado que se pressione **Enter**, surgirá a mensagem **"You can acc
 #### E) Debian — conectar à Rede Interna
 
 Inicie a VM **Debian** e aguarde a obtenção de endereço IP via DHCP do pfSense.
-
-1. Instale utilitários (se necessário) e verifique a conectividade:
-
-```bash
-sudo apt update && sudo apt install -y net-tools dnsutils curl
-ip a                 # deve obter IP na sub-rede da LAN (ex.: 192.168.1.x)
-ip route
-ping -c2 192.168.1.1 # gateway do pfSense
-```
-
-2. **Se o `Debian` estava com IP estático, resetar para DHCP:**
+   
+1. Configuração do NetworkManager (Recomendado):
+   * **Limpe o arquivo de interfaces:**
+   Remova qualquer configuração de interface física (ex: `eth0`, `enp...`) do arquivo `/etc/network/interfaces`. Deixe apenas o loopback para evitar conflitos:
    ```bash
-   IFACE=$(ip route | awk '/default/ {print $5; exit}')
-   sudo dhclient -r "$IFACE" || true
-   sudo ip addr flush dev "$IFACE"
-   sudo dhclient "$IFACE"
-   ip -4 a show "$IFACE"
+   # Deixe apenas isso:
+   auto lo
+   iface lo inet loopback
    ```
+   * **Verifique o NetworkManager:**
+   * Certifique-se de que o serviço está rodando:
+   ```bash
+   systemctl status NetworkManager
+   ```
+   * **Configure o Perfil:**
+   Em vez de comandos isolados, use a interface das **Configurações do sistema** (Gnome/KDE) para editar o perfil da rede ou criar um novo.
+      * Vá em **Configurações > Rede**.
+      * Clique na engrenagem da sua conexão.
+      * Em **IPv4**, garanta que esteja em **Automático (DHCP)**.
+   * **Reinicie para aplicar:**
+   ```bash
+   sudo systemctl restart NetworkManager
+   ```
+   
+2. Verifique a conectividade:
+   ```bash
+   ip a           # deve obter IP na sub-rede da LAN
+   ip route       # verifique se o gateway padrão aponta para o pfSense
+   ping -c2 8.8.8.8
+   ```
+   
+3. Instale utilitários: 
+   ```bash
+   sudo apt update && sudo apt install -y net-tools dnsutils curl
+   ```
+   **Importante:** Os comandos `sudo apt update` e `sudo apt install` necessitam de acesso a Internet.
 
-3. **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
-4. Aqui, ignorar aviso de segurança para certificado (do pfSense) ausente. Selecione "Advanced..." e "Accept the Risk and Continue".
+4. **Acesso à WebGUI do pfSense (para criar regras e ver logs):** no navegador do Debian, abra `https://192.168.1.1` (ou o IP LAN do pfSense) e aceite o certificado autoassinado.
+5. Aqui, ignorar aviso de segurança para certificado (do pfSense) ausente. Selecione "Advanced..." e "Accept the Risk and Continue".
    <img width="800" alt="image" src="https://github.com/user-attachments/assets/93f8d318-91b0-4530-a728-449236d65ab5" />
-
-4. Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".
+6. Credenciais de acesso da interface web: usuário:"admin" e senha:"pfsense".
 
 ---
 
