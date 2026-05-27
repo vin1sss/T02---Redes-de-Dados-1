@@ -409,6 +409,14 @@ Com **Suricata na própria VM** e **regras locais** simples, comprovamos a detec
   sudo rm -f /var/run/suricata.pid
   ```
 
+* **`E: Package 'suricata' has no installation candidate` / Erro ao instalar o Suricata:**
+
+   ```bash
+  echo "deb http://deb.debian.org/debian bookworm-backports main" | sudo tee /etc/apt/sources.list.d/backports.list 
+  sudo apt update
+  sudo apt install -y -t bookworm-backports suricata
+  ```
+
 * **Regras não carregam / erros de sintaxe:**
   Cada regra deve estar **em uma única linha** (Snort-syntax). Valide com `-T`.
 
